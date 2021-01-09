@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { LatLng, measure } from './utils/map';
 
-import axios from 'axios';
-import './App.css';
+import './App.scss';
 
 declare global {
     interface Window {
@@ -50,15 +49,19 @@ function App() {
     const [starting, setStarting] = useState<LatLng | null>(null);
     const [destination, setDestination] = useState<LatLng | null>(null);
 
-    const mapDivRef = useRef(null);
+    const mapDivRef = useRef<HTMLDivElement>(null);
     const map = useRef<any>(null);
     const startingMarker = useRef<any>(null);
     const destinationMarker = useRef<any>(null);
 
+    const isDown = useRef(false);
+
     useEffect(() => {
         if (mapDivRef.current) {
             initMap();
+            initCavans();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapDivRef]);
 
     const initMap = () => {
@@ -81,7 +84,7 @@ function App() {
         });
         kakao.maps.event.addListener(startingMarker.current, 'dragend', function () {
             startingMarker.current.setImage(startingImage);
-            setStarting(startingMarker.current.getPosition());
+            setStarting(startingMarker.current.wPosition());
         });
 
         // destination
@@ -98,6 +101,55 @@ function App() {
             destinationMarker.current.setImage(destinationImage);
             setDestination(destinationMarker.current.getPosition());
         });
+    };
+
+    const initCavans = () => {
+        const wrap = document.getElementById('mapCanvasWrap');
+        const map = document.getElementById('map');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.className = 'canvas';
+
+        if (!wrap || !ctx || !map) {
+            return;
+        }
+
+        wrap.appendChild(canvas);
+
+        const pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
+
+        console.log(map.clientWidth, map.clientHeight);
+
+        const stageWidth = map.clientWidth;
+        const stageHeight = map.clientHeight;
+
+        canvas.width = stageWidth * pixelRatio;
+        canvas.height = stageHeight * pixelRatio;
+        ctx.scale(pixelRatio, pixelRatio);
+
+        canvas.addEventListener('pointerdown', (e) => {
+            isDown.current = true;
+            if (ctx) {
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            }
+        });
+
+        canvas.addEventListener('pointermove', (e) => handlePointerMove(e, ctx));
+
+        canvas.addEventListener('pointerup', () => {
+            isDown.current = false;
+            ctx.closePath();
+        });
+    };
+
+    const handlePointerMove = (e: PointerEvent, ctx: CanvasRenderingContext2D) => {
+        if (!isDown.current || !ctx) {
+            return;
+        }
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
     };
 
     const searchStarting = () => {
@@ -149,7 +201,10 @@ function App() {
                 <input type="text" value={destinationKeyword} onChange={(e) => setDestinationKeyword(e.target.value)} />
                 <button onClick={searchDestination}>검색</button>
             </div>
-            <div ref={mapDivRef} id="map" style={{ width: '100%', paddingTop: '75%' }}></div>
+            <div className="mapCanvasWrap" id="mapCanvasWrap">
+                <div ref={mapDivRef} className="map" id="map"></div>
+                {/* <canvas ref={canvasRef} className="canvas"></canvas> */}
+            </div>
             {starting && destination && <button onClick={confirmPosition}>확인</button>}
         </div>
     );

@@ -44,7 +44,7 @@ export const center = (ll1: LatLng, ll2: LatLng) => {
     return new kakao.maps.LatLng((lat1 + lat2) / 2, (lon1 + lon2) / 2);
 };
 
-export const mapLevel = {
+export const mapLevelScaleMap = {
     1: 20,
     2: 30,
     3: 50,
