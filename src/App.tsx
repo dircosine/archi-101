@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { LatLng, measure } from './utils/map';
+import { LatLng, measure, Path, Point } from './utils/map';
 
 import './App.scss';
 
@@ -105,13 +105,13 @@ function App() {
 
     const initCavans = () => {
         const wrap = document.getElementById('mapCanvasWrap');
-        const map = document.getElementById('map');
+        const mapElem = document.getElementById('map');
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
         canvas.className = 'canvas';
 
-        if (!wrap || !ctx || !map) {
+        if (!wrap || !ctx || !mapElem) {
             return;
         }
 
@@ -119,37 +119,80 @@ function App() {
 
         const pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
 
-        console.log(map.clientWidth, map.clientHeight);
-
-        const stageWidth = map.clientWidth;
-        const stageHeight = map.clientHeight;
+        const stageWidth = mapElem.clientWidth;
+        const stageHeight = mapElem.clientHeight;
 
         canvas.width = stageWidth * pixelRatio;
         canvas.height = stageHeight * pixelRatio;
         ctx.scale(pixelRatio, pixelRatio);
 
+        const paths: Path[] = [];
+        let path: Path;
+
+        const translates: Point[] = [{ x: 0, y: 0 }];
+
+        let tX: number;
+        let tY: number;
+
+        let interval: NodeJS.Timeout;
+
         canvas.addEventListener('pointerdown', (e) => {
             isDown.current = true;
             if (ctx) {
-                ctx.beginPath();
-                ctx.moveTo(e.offsetX, e.offsetY);
             }
+
+            tX = e.offsetX - stageWidth / 2;
+            tY = e.offsetY - stageHeight / 2;
+
+            interval = setInterval(() => {
+                translates.push({ x: -tX, y: -tY });
+                // path = {
+                //     path: new Path2D(),
+                //     translate: { x: 0, y: 0 },
+                // };
+                // path.path.moveTo(stageWidth / 2, stageHeight / 2);
+                // path.path.lineTo(e.offsetX, e.offsetY);
+
+                // path.path.lineTo(e.offsetX, e.offsetY);
+                // ctx.stroke(path.path);
+
+                // ctx.closePath();
+                ctx.clearRect(0, 0, stageWidth, stageHeight);
+
+                // path.translate = { x: -tX, y: -tY };
+                // paths.push(path);
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(stageWidth / 2, stageHeight / 2);
+                for (let i = translates.length - 1; i >= 0; i -= 1) {
+                    const translate = translates[i];
+                    ctx.translate(translate.x, translate.y);
+                    ctx.lineTo(stageWidth / 2, stageHeight / 2);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                map.current.panBy(tX, tY);
+            }, 300);
         });
 
-        canvas.addEventListener('pointermove', (e) => handlePointerMove(e, ctx));
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isDown.current || !ctx) {
+                return;
+            }
 
-        canvas.addEventListener('pointerup', () => {
+            tX = (e.offsetX - stageWidth / 2) * 0.3;
+            tY = (e.offsetY - stageHeight / 2) * 0.3;
+        });
+
+        canvas.addEventListener('pointerup', (e) => {
             isDown.current = false;
-            ctx.closePath();
-        });
-    };
 
-    const handlePointerMove = (e: PointerEvent, ctx: CanvasRenderingContext2D) => {
-        if (!isDown.current || !ctx) {
-            return;
-        }
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
+            clearInterval(interval);
+            // const tX = e.offsetX - stageWidth / 2;
+            // const tY = e.offsetY - stageHeight / 2;
+        });
     };
 
     const searchStarting = () => {

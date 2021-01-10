@@ -1,3 +1,12 @@
+export type Point = {
+    x: number;
+    y: number;
+};
+export type Path = {
+    path: Path2D;
+    translate: Point;
+};
+
 export interface Coords {
     x: number;
     y: number;
@@ -9,6 +18,8 @@ export interface Coords {
 }
 
 export interface LatLng {
+    La: number;
+    Ma: number;
     latitude: number;
     longitude: number;
     getLat(): number;
