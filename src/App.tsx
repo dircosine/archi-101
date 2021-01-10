@@ -54,8 +54,6 @@ function App() {
     const startingMarker = useRef<any>(null);
     const destinationMarker = useRef<any>(null);
 
-    const isDown = useRef(false);
-
     useEffect(() => {
         if (mapDivRef.current) {
             initMap();
@@ -69,7 +67,7 @@ function App() {
 
         map.current = new kakao.maps.Map(mapDivRef.current, {
             center: initLatLng,
-            level: 3,
+            level: 4,
         });
 
         // starting
@@ -109,6 +107,8 @@ function App() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
+        let isDown = false;
+
         canvas.className = 'canvas';
 
         if (!wrap || !ctx || !mapElem) {
@@ -126,6 +126,9 @@ function App() {
         canvas.height = stageHeight * pixelRatio;
         ctx.scale(pixelRatio, pixelRatio);
 
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'red';
+
         const translates: Point[] = [{ x: 0, y: 0 }];
 
         let tX: number;
@@ -133,58 +136,105 @@ function App() {
 
         let interval: NodeJS.Timeout;
 
+        let mapProjection: any = map.current.getProjection();
+        const path: LatLng[] = [];
+
         canvas.addEventListener('pointerdown', (e) => {
-            isDown.current = true;
+            isDown = true;
             if (ctx) {
             }
 
             tX = e.offsetX - stageWidth / 2;
             tY = e.offsetY - stageHeight / 2;
 
-            interval = setInterval(() => {
-                translates.push({ x: -tX, y: -tY });
-                // path = {
-                //     path: new Path2D(),
-                //     translate: { x: 0, y: 0 },
-                // };
-                // path.path.moveTo(stageWidth / 2, stageHeight / 2);
-                // path.path.lineTo(e.offsetX, e.offsetY);
+            // interval = setInterval(() => {
+            //     translates.push({ x: -tX, y: -tY });
 
-                // path.path.lineTo(e.offsetX, e.offsetY);
-                // ctx.stroke(path.path);
+            //     ctx.clearRect(0, 0, stageWidth, stageHeight);
 
-                // ctx.closePath();
-                ctx.clearRect(0, 0, stageWidth, stageHeight);
+            //     ctx.save();
+            //     ctx.beginPath();
+            //     ctx.moveTo(stageWidth / 2, stageHeight / 2);
+            //     for (let i = translates.length - 1; i >= 0; i -= 1) {
+            //         const translate = translates[i];
+            //         ctx.translate(translate.x, translate.y);
+            //         ctx.lineTo(stageWidth / 2, stageHeight / 2);
+            //     }
+            //     ctx.stroke();
+            //     ctx.restore();
 
-                // path.translate = { x: -tX, y: -tY };
-                // paths.push(path);
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(stageWidth / 2, stageHeight / 2);
-                for (let i = translates.length - 1; i >= 0; i -= 1) {
-                    const translate = translates[i];
-                    ctx.translate(translate.x, translate.y);
-                    ctx.lineTo(stageWidth / 2, stageHeight / 2);
-                }
-                ctx.stroke();
-                ctx.restore();
-
-                map.current.panBy(tX, tY);
-            }, 300);
+            //     map.current.panBy(tX, tY);
+            // }, 300);
         });
 
+        let pushcounter = 0;
+        let centerMovedX = 0;
+        let centerMovedY = 0;
         canvas.addEventListener('pointermove', (e) => {
-            if (!isDown.current || !ctx) {
+            if (!isDown || !ctx) {
                 return;
             }
 
-            tX = (e.offsetX - stageWidth / 2) * 0.3;
-            tY = (e.offsetY - stageHeight / 2) * 0.3;
+            if (e.offsetX < 50 || e.offsetY < 50 || e.offsetX > stageWidth - 50 || e.offsetY > stageHeight - 50) {
+                isDown = false;
+                const point: Point = new kakao.maps.Point(e.offsetX + centerMovedX, e.offsetY + centerMovedY);
+                map.current.setCenter(mapProjection.coordsFromPoint(point));
+                centerMovedX += e.offsetX - stageWidth / 2;
+                centerMovedY += e.offsetY - stageHeight / 2;
+
+                // setTimeout(() => {
+                ctx.clearRect(0, 0, stageWidth, stageHeight);
+                ctx.save();
+                ctx.beginPath();
+                for (let i = 0; i < path.length; i++) {
+                    const point: Point = mapProjection.pointFromCoords(path[i]);
+                    ctx.lineTo(point.x - centerMovedX, point.y - centerMovedY);
+                }
+                ctx.stroke();
+                ctx.restore();
+                // }, 1000);
+            }
+
+            pushcounter += 1;
+
+            if (pushcounter >= 5) {
+                pushcounter = 0;
+                const point: Point = new kakao.maps.Point(e.offsetX + centerMovedX, e.offsetY + centerMovedY);
+                const coords: LatLng = mapProjection.coordsFromPoint(point);
+
+                path.push(coords);
+
+                ctx.save();
+                ctx.beginPath();
+                for (let i = 0; i < path.length; i++) {
+                    const point: Point = mapProjection.containerPointFromCoords(path[i]);
+                    ctx.lineTo(point.x, point.y);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // tX = (e.offsetX - stageWidth / 2) * 0.3;
+            // tY = (e.offsetY - stageHeight / 2) * 0.3;
+
+            // translates.push({ x: -tX, y: -tY });
+
+            // ctx.clearRect(0, 0, stageWidth, stageHeight);
+
+            // ctx.save();
+            // ctx.beginPath();
+            // ctx.moveTo(stageWidth / 2, stageHeight / 2);
+            // for (let i = translates.length - 1; i >= 0; i -= 1) {
+            //     const translate = translates[i];
+            //     ctx.translate(translate.x, translate.y);
+            //     ctx.lineTo(stageWidth / 2, stageHeight / 2);
+            // }
+            // ctx.stroke();
+            // ctx.restore();
         });
 
         canvas.addEventListener('pointerup', (e) => {
-            isDown.current = false;
+            isDown = false;
 
             clearInterval(interval);
             // const tX = e.offsetX - stageWidth / 2;
@@ -193,7 +243,6 @@ function App() {
 
         let levelChanging = false;
         canvas.addEventListener('wheel', (e) => {
-            console.log(e);
             if (Math.abs(e.deltaY) > 5 && !levelChanging) {
                 levelChanging = true;
                 map.current.setLevel(map.current.getLevel() + Math.sign(e.deltaY), { animate: true });
@@ -201,6 +250,16 @@ function App() {
                     levelChanging = false;
                 }, 50);
             }
+
+            // ctx.clearRect(0, 0, stageWidth, stageHeight);
+            // ctx.save();
+            // ctx.beginPath();
+            // for (let i = 0; i < path.length; i++) {
+            //     const point: Point = mapProjection.pointFromCoords(path[i]);
+            //     ctx.lineTo(point.x, point.y);
+            // }
+            // ctx.stroke();
+            // ctx.restore();
         });
     };
 
