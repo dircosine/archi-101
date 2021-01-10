@@ -126,9 +126,6 @@ function App() {
         canvas.height = stageHeight * pixelRatio;
         ctx.scale(pixelRatio, pixelRatio);
 
-        const paths: Path[] = [];
-        let path: Path;
-
         const translates: Point[] = [{ x: 0, y: 0 }];
 
         let tX: number;
@@ -192,6 +189,18 @@ function App() {
             clearInterval(interval);
             // const tX = e.offsetX - stageWidth / 2;
             // const tY = e.offsetY - stageHeight / 2;
+        });
+
+        let levelChanging = false;
+        canvas.addEventListener('wheel', (e) => {
+            console.log(e);
+            if (Math.abs(e.deltaY) > 5 && !levelChanging) {
+                levelChanging = true;
+                map.current.setLevel(map.current.getLevel() + Math.sign(e.deltaY), { animate: true });
+                setTimeout(() => {
+                    levelChanging = false;
+                }, 50);
+            }
         });
     };
 
