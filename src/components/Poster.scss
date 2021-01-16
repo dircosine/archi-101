@@ -12,7 +12,9 @@
         top: 0;
 
         height: 100vh;
-        padding-top: 7vh;
+        display: grid;
+        align-content: center;
+        justify-content: center;
     }
 
     // $elements: 3;

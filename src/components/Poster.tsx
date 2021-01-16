@@ -1,8 +1,20 @@
+import { useEffect } from 'react';
 import './Poster.scss';
 
 interface PosterProps {}
 
-function Poster({}: PosterProps) {
+const degrees = [4, -4, 1, -7, 8, 3, -2];
+
+function Poster(props: PosterProps) {
+    useEffect(() => {
+        const posters = document.getElementsByClassName('poster');
+
+        for (let i = 0; i < posters.length; i++) {
+            const poster = posters.item(i);
+            poster?.setAttribute('style', `transform: rotate(${degrees[i]}deg)`);
+        }
+    }, []);
+
     return (
         <section className="Poster">
             <div className="poster">
