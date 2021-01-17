@@ -16,15 +16,6 @@
         align-content: center;
         justify-content: center;
     }
-
-    // $elements: 3;
-    // @for $i from 1 to $elements {
-    //     .poster:nth-child(#{$i}) {
-    //         img {
-    //             transform: rotate(#{(random(10) * 4) + 'deg'});
-    //         }
-    //     }
-    // }
 }
 
 .Poster::-webkit-scrollbar {

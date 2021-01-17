@@ -1,10 +1,47 @@
 .Video {
-    height: 100vh;
-    display: grid;
-    align-content: center;
-    justify-content: center;
+    // height: 100vh;
+    margin-top: 200px;
+    // display: grid;
+    // align-content: center;
+    // justify-content: center;
+
+    text-align: center;
+
+    .announce {
+        position: sticky;
+        top: 160px;
+
+        margin: 0;
+        line-height: 60px;
+        font-size: 18px;
+
+        height: 100vh;
+    }
+
+    .video {
+        position: sticky;
+        top: 0;
+
+        height: 100vh;
+        display: grid;
+        align-content: center;
+        justify-content: center;
+    }
+
+    .quote {
+        display: flex;
+        justify-content: center;
+        word-break: keep-all;
+        font-size: 18px;
+        margin: 40px 16px;
+    }
+    .quote::before {
+        content: url('./assets/quote.svg');
+        margin-right: 8px;
+    }
 
     a {
+        display: inline;
         margin-top: 40px;
     }
     // background-color: black;
