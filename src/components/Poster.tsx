@@ -29,11 +29,6 @@ function Poster(props: PosterProps) {
             <div className="poster">
                 <img src="/archi101-poster-3.jpg" alt="poster" />
             </div>
-
-            {/* <div className="buttons">
-                    <button onClick={() => setActiveSection('video')}>넵</button>
-                    <button onClick={() => setActiveSection('video')}>아뇨</button>
-                </div> */}
         </section>
     );
 }

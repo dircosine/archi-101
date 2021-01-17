@@ -1,20 +1,17 @@
 .PathDraw {
-    height: 100vh;
+    position: relative;
+    // width: 97%;
+    width: 0;
+    max-width: 740px;
+    margin: 0 auto;
 
-    display: grid;
-    align-content: center;
-    justify-content: center;
-    text-align: center;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 
-    .mapCanvasWrap {
-        width: 100vw;
-        position: relative;
-    }
     .map {
         width: 100%;
-        height: 80vh;
-        // padding-top: 75%;
+        padding-top: 75%;
     }
+
     .canvas {
         position: absolute;
         top: 0;
@@ -22,5 +19,11 @@
         width: 100%;
         height: 100%;
         z-index: 1;
+    }
+
+    .overlayContent {
+        background-color: #fff;
+        padding: 8px;
+        margin-bottom: 20px;
     }
 }

@@ -1,4 +1,3 @@
-import PathDraw from './components/PathDraw';
 import { Switch, Redirect, Route, BrowserRouter, Link } from 'react-router-dom';
 
 import './App.scss';
@@ -25,18 +24,20 @@ export type Section = 'poster' | 'video' | 'path';
 function App() {
     return (
         <div className="App">
-            <BrowserRouter>
-                <header style={{ zIndex: 9999 }}>
-                    <Link to="/">
-                        <img src="/logo.png" height="40px" alt="logo" />
-                    </Link>
-                </header>
-                <Switch>
-                    <Route exact path="/" component={IntroPage} />
-                    <Route path="/path" component={PathPage} />
-                    <Redirect path="*" to="/" />
-                </Switch>
-            </BrowserRouter>
+            <div className="wrap">
+                <BrowserRouter>
+                    <header style={{ zIndex: 9999 }}>
+                        <Link to="/">
+                            <img src="/logo.png" height="40px" alt="logo" />
+                        </Link>
+                    </header>
+                    <Switch>
+                        <Route exact path="/" component={IntroPage} />
+                        <Route path="/path" component={PathPage} />
+                        <Redirect path="*" to="/" />
+                    </Switch>
+                </BrowserRouter>
+            </div>
         </div>
     );
 }
