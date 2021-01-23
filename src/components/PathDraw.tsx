@@ -1,6 +1,7 @@
-import { forwardRef, useEffect, useRef } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useRef, useState } from 'react';
 import { PathPhase } from '../pages/PathPage';
-import { LatLng, Point } from '../utils/map';
+import { LatLng } from '../utils/map';
 import PathCanvas from './PathCanvas';
 
 import './PathDraw.scss';
@@ -36,6 +37,8 @@ const destinationDragImage = new kakao.maps.MarkerImage(
     },
 );
 
+export type MapEvents = 'none' | 'dragStart' | 'dragEnd' | 'zoomStart' | 'zoomChanged';
+
 interface PathDrawProps {
     phase: PathPhase;
     starting: LatLng | null;
@@ -47,9 +50,10 @@ interface PathDrawProps {
 }
 
 function PathDraw({ phase, starting, destination, bounds, setStarting, setDestination, setPhase }: PathDrawProps) {
-    const mapDivRef = useRef<HTMLDivElement>(null);
-    const map = useRef<any>(null);
+    const [map, setMap] = useState<any>(null);
+    const [mapEvent, setMapDragEvent] = useState<MapEvents>('none');
 
+    const mapDivRef = useRef<HTMLDivElement>(null);
     const startingMarker = useRef<any>(null);
     const destinationMarker = useRef<any>(null);
 
@@ -72,13 +76,13 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
         overlayContent.innerHTML = `<div class="overlayContent"><button id="confirmButton">여기!</button></div>`;
 
         if (starting && phase === 'confirmStarting') {
-            map.current.relayout();
+            map.relayout();
 
-            map.current.setCenter(starting);
+            map.setCenter(starting);
             startingMarker.current.setPosition(starting);
 
             overlay.current = new kakao.maps.CustomOverlay({
-                map: map.current,
+                map: map,
                 position: starting,
                 content: overlayContent,
                 yAnchor: 1,
@@ -89,13 +93,13 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
                 ?.addEventListener('click', () => handleConfirm('starting', overlay));
         }
         if (destination && phase === 'confirmDestination') {
-            map.current.relayout();
+            map.relayout();
 
-            map.current.setCenter(destination);
+            map.setCenter(destination);
             destinationMarker.current.setPosition(destination);
 
             overlay.current = new kakao.maps.CustomOverlay({
-                map: map.current,
+                map: map,
                 position: destination,
                 content: overlayContent,
                 yAnchor: 1,
@@ -109,27 +113,28 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
 
     useEffect(() => {
         if (bounds) {
-            map.current.setBounds(bounds);
+            map.setBounds(bounds);
         }
     }, [bounds]);
 
     useEffect(() => {
         if (phase === 'draw') {
-            map.current.setCenter(starting);
+            map.setCenter(starting);
+            map.setLevel(4);
         }
     }, [phase]);
 
     const initMap = () => {
         const initLatLng: LatLng = new kakao.maps.LatLng(33.450701, 126.570667);
 
-        map.current = new kakao.maps.Map(mapDivRef.current, {
+        const kakoMap = new kakao.maps.Map(mapDivRef.current, {
             center: initLatLng,
             level: 4,
         });
 
         // starting
         startingMarker.current = new kakao.maps.Marker({
-            map: map.current,
+            map: kakoMap,
             position: initLatLng,
             draggable: true,
             image: startingImage,
@@ -148,7 +153,7 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
 
         // destination
         destinationMarker.current = new kakao.maps.Marker({
-            map: map.current,
+            map: kakoMap,
             position: initLatLng,
             draggable: true,
             image: destinationImage,
@@ -164,6 +169,27 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
             destinationMarker.current.setImage(destinationImage);
             setDestination(destinationMarker.current.getPosition());
         });
+
+        // *** map events
+        kakao.maps.event.addListener(kakoMap, 'dragstart', function () {
+            console.log(kakoMap.getCenter());
+            setMapDragEvent('dragStart');
+        });
+
+        kakao.maps.event.addListener(kakoMap, 'dragend', function () {
+            console.log(kakoMap.getCenter());
+            setMapDragEvent('dragEnd');
+        });
+
+        kakao.maps.event.addListener(kakoMap, 'zoom_start', function () {
+            setMapDragEvent('zoomStart');
+        });
+
+        kakao.maps.event.addListener(kakoMap, 'zoom_changed', function () {
+            setMapDragEvent('zoomChanged');
+        });
+
+        setMap(kakoMap);
     };
 
     const handleConfirm = (type: 'starting' | 'destination', overlay: any) => {
@@ -179,13 +205,12 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
         }
     };
 
-    const isShowing =
-        phase === 'confirmStarting' || phase === 'confirmDestination' || phase === 'confirmBoth' || phase === 'draw';
+    const isShowing = ['confirmStarting', 'confirmDestination', 'confirmBoth', 'draw', 'viewPath'].includes(phase);
 
     return (
         <div className="PathDraw" id="mapCanvasWrap" style={{ width: isShowing ? '97%' : 0 }}>
             <div ref={mapDivRef} className="map" id="map" />
-            <PathCanvas map={map} mapElemId="map" phase={phase} />
+            <PathCanvas map={map} mapElemId="map" phase={phase} mapEvent={mapEvent} />
         </div>
     );
 }
