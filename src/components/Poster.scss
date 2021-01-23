@@ -16,6 +16,15 @@
         align-content: center;
         justify-content: center;
     }
+    .poster:nth-child(2) {
+        height: 110vh;
+    }
+    .poster:nth-child(3) {
+        height: 120vh;
+    }
+    .poster:last-child {
+        height: 130vh;
+    }
 }
 
 .Poster::-webkit-scrollbar {
