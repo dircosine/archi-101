@@ -76,17 +76,17 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         canvasRef.current.height = stageHeight.current * pixelRatio;
         ctx.current.scale(pixelRatio, pixelRatio);
 
-        let levelChanging = false;
-        canvasRef.current.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            if (Math.abs(e.deltaY) > 5 && !levelChanging) {
-                levelChanging = true;
-                map.setLevel(map.getLevel() + Math.sign(e.deltaY), { animate: true });
-                setTimeout(() => {
-                    levelChanging = false;
-                }, 50);
-            }
-        });
+        // let levelChanging = false;
+        // canvasRef.current.addEventListener('wheel', (e) => {
+        //     e.preventDefault();
+        //     if (Math.abs(e.deltaY) > 5 && !levelChanging) {
+        //         levelChanging = true;
+        //         map.setLevel(map.getLevel() + Math.sign(e.deltaY), { animate: true });
+        //         setTimeout(() => {
+        //             levelChanging = false;
+        //         }, 50);
+        //     }
+        // });
 
         map.relayout();
     };

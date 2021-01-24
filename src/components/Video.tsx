@@ -20,8 +20,11 @@ function Video() {
             <p className="announce">아주 잠깐만 다시 볼까요? 🎧</p>
             <div className="video">
                 <video ref={videoRef} controls width="100%">
-                    {/* <source src="https://archi101.s3.ap-northeast-2.amazonaws.com/ch1-540.mp4" type="video/mp4"></source> */}
-                    <source src="/ch1-540.mp4" type="video/mp4" />
+                    <source
+                        src="https://archi101.s3.ap-northeast-2.amazonaws.com/ch1-540.mp4"
+                        type="video/mp4"
+                    ></source>
+                    {/* <source src="/ch1-540.mp4" type="video/mp4" /> */}
                 </video>
                 {videoEnded && (
                     <>
