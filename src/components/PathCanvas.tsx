@@ -5,7 +5,6 @@ import { LatLng, Point } from '../utils/map';
 
 import { PathContext } from '../pages/PathPage';
 import { MapEvents } from './PathDraw';
-import { PassThrough } from 'stream';
 
 interface PathCanvasProps {
     map: any;
@@ -201,9 +200,9 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         ctx.current.beginPath();
         for (let i = 0; i < path.others.length; i++) {
             const other = path.others[i];
-            for (let j = 0; j < other.length; j++) {
+            for (let j = 0; j < other.coords?.length; j++) {
                 const point: Point = mapProjection.containerPointFromCoords(
-                    new kakao.maps.LatLng(other[j].Ma, other[j].La),
+                    new kakao.maps.LatLng(other.coords[j].Ma, other.coords[j].La),
                 );
                 ctx.current.lineTo(point.x, point.y);
             }

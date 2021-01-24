@@ -3,6 +3,8 @@ import PathDraw from '../components/PathDraw';
 import useInput from '../hooks/useInput';
 import { LatLng } from '../utils/map';
 
+import { v4 as uuidv4 } from 'uuid';
+
 const geocoder = new kakao.maps.services.Geocoder();
 
 export type PathPhase =
@@ -14,8 +16,16 @@ export type PathPhase =
     | 'draw'
     | 'viewPath';
 
+type Path = {
+    id: string; // uuid
+    user?: string; // email
+    coords: LatLng[]; // 경로 좌표들
+    starting: LatLng;
+    destination: LatLng;
+};
+
 export type PathContextType = {
-    others: LatLng[][];
+    others: Path[];
     my: LatLng[];
 };
 
@@ -23,6 +33,9 @@ export const PathContext = createContext<PathContextType>({
     others: [],
     my: [],
 });
+
+const myPath: LatLng[] = [];
+const othersPath: Path[] = JSON.parse(window.localStorage.getItem('paths') || '[]');
 
 function PathPage() {
     const [phase, setPhase] = useState<PathPhase>('searchStarting');
@@ -38,9 +51,6 @@ function PathPage() {
 
     const startingInput = useRef<HTMLInputElement>(null);
     const destinationInput = useRef<HTMLInputElement>(null);
-
-    const myPath: LatLng[] = [];
-    const othersPath: LatLng[][] = JSON.parse(window.localStorage.getItem('paths') || '[]');
 
     useEffect(() => {
         if (starting && destination && phase === 'confirmBoth') {
@@ -90,7 +100,17 @@ function PathPage() {
     };
 
     const uploadPath = () => {
-        window.localStorage.setItem('paths', JSON.stringify([...othersPath, myPath]));
+        const pathId = uuidv4();
+        const path: Path = {
+            id: pathId,
+            coords: myPath,
+            starting: starting!,
+            destination: destination!,
+        };
+        window.localStorage.setItem('paths', JSON.stringify([...othersPath, path]));
+
+        const myPathIds = JSON.parse(window.localStorage.getItem('myPathIds') || '[]');
+        window.localStorage.setItem('myPathIds', JSON.stringify([...myPathIds, pathId]));
     };
 
     return (
