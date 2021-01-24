@@ -1,23 +1,23 @@
 {
   "files": {
-    "main.css": "/archi-101/static/css/main.89b1f6ee.chunk.css",
-    "main.js": "/archi-101/static/js/main.1c054105.chunk.js",
-    "main.js.map": "/archi-101/static/js/main.1c054105.chunk.js.map",
-    "runtime-main.js": "/archi-101/static/js/runtime-main.2d81a4eb.js",
-    "runtime-main.js.map": "/archi-101/static/js/runtime-main.2d81a4eb.js.map",
-    "static/js/2.6e58bdf8.chunk.js": "/archi-101/static/js/2.6e58bdf8.chunk.js",
-    "static/js/2.6e58bdf8.chunk.js.map": "/archi-101/static/js/2.6e58bdf8.chunk.js.map",
-    "static/js/3.5b26709e.chunk.js": "/archi-101/static/js/3.5b26709e.chunk.js",
-    "static/js/3.5b26709e.chunk.js.map": "/archi-101/static/js/3.5b26709e.chunk.js.map",
-    "index.html": "/archi-101/index.html",
-    "static/css/main.89b1f6ee.chunk.css.map": "/archi-101/static/css/main.89b1f6ee.chunk.css.map",
-    "static/js/2.6e58bdf8.chunk.js.LICENSE.txt": "/archi-101/static/js/2.6e58bdf8.chunk.js.LICENSE.txt",
-    "static/media/Video.scss": "/archi-101/static/media/quote.03ecfdef.svg"
+    "main.css": "/architecture-101/static/css/main.ade1da6b.chunk.css",
+    "main.js": "/architecture-101/static/js/main.1c054105.chunk.js",
+    "main.js.map": "/architecture-101/static/js/main.1c054105.chunk.js.map",
+    "runtime-main.js": "/architecture-101/static/js/runtime-main.57090902.js",
+    "runtime-main.js.map": "/architecture-101/static/js/runtime-main.57090902.js.map",
+    "static/js/2.6e58bdf8.chunk.js": "/architecture-101/static/js/2.6e58bdf8.chunk.js",
+    "static/js/2.6e58bdf8.chunk.js.map": "/architecture-101/static/js/2.6e58bdf8.chunk.js.map",
+    "static/js/3.5b26709e.chunk.js": "/architecture-101/static/js/3.5b26709e.chunk.js",
+    "static/js/3.5b26709e.chunk.js.map": "/architecture-101/static/js/3.5b26709e.chunk.js.map",
+    "index.html": "/architecture-101/index.html",
+    "static/css/main.ade1da6b.chunk.css.map": "/architecture-101/static/css/main.ade1da6b.chunk.css.map",
+    "static/js/2.6e58bdf8.chunk.js.LICENSE.txt": "/architecture-101/static/js/2.6e58bdf8.chunk.js.LICENSE.txt",
+    "static/media/Video.scss": "/architecture-101/static/media/quote.03ecfdef.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.2d81a4eb.js",
+    "static/js/runtime-main.57090902.js",
     "static/js/2.6e58bdf8.chunk.js",
-    "static/css/main.89b1f6ee.chunk.css",
+    "static/css/main.ade1da6b.chunk.css",
     "static/js/main.1c054105.chunk.js"
   ]
 }
