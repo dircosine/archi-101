@@ -77,21 +77,17 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         canvasRef.current.height = stageHeight.current * pixelRatio;
         ctx.current.scale(pixelRatio, pixelRatio);
 
-        ctx.current.lineWidth = 5;
-        ctx.current.strokeStyle = 'rgba(255,1,2,0.5)';
-        ctx.current.lineCap = 'round';
-
-        // let levelChanging = false;
-        // canvasRef.current.addEventListener('wheel', (e) => {
-        //     e.preventDefault();
-        //     if (Math.abs(e.deltaY) > 5 && !levelChanging) {
-        //         levelChanging = true;
-        //         map.setLevel(map.getLevel() + Math.sign(e.deltaY), { animate: true });
-        //         setTimeout(() => {
-        //             levelChanging = false;
-        //         }, 50);
-        //     }
-        // });
+        let levelChanging = false;
+        canvasRef.current.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (Math.abs(e.deltaY) > 5 && !levelChanging) {
+                levelChanging = true;
+                map.setLevel(map.getLevel() + Math.sign(e.deltaY), { animate: true });
+                setTimeout(() => {
+                    levelChanging = false;
+                }, 50);
+            }
+        });
 
         map.relayout();
     };
@@ -119,9 +115,21 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         canvasRef.current.addEventListener('pointerdown', (e) => {
             isDown = true;
 
+            if (!ctx.current) {
+                isDown = false;
+                return;
+            }
+
+            ctx.current.save();
+            ctx.current.beginPath();
+
+            ctx.current.lineWidth = 5;
+            ctx.current.strokeStyle = 'rgba(255,1,2,1)';
+            ctx.current.lineCap = 'round';
+
             const lastCoords = path.my[path.my.length - 1];
             const lastPoint: Point = mapProjection.containerPointFromCoords(lastCoords);
-            ctx.current?.moveTo(lastPoint.x, lastPoint.y);
+            ctx.current.moveTo(lastPoint.x, lastPoint.y);
         });
 
         canvasRef.current.addEventListener('pointermove', (e) => {
@@ -132,10 +140,10 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
             pushcounter += 1;
 
             if (
-                e.offsetX < 50 ||
-                e.offsetY < 50 ||
-                e.offsetX > stageWidth.current - 50 ||
-                e.offsetY > stageHeight.current - 50
+                e.offsetX < 40 ||
+                e.offsetY < 40 ||
+                e.offsetX > stageWidth.current - 40 ||
+                e.offsetY > stageHeight.current - 40
             ) {
                 isDown = false;
                 const point: Point = new kakao.maps.Point(e.offsetX + centerMovedX, e.offsetY + centerMovedY);
@@ -170,6 +178,8 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
 
         canvasRef.current.addEventListener('pointerup', (e) => {
             isDown = false;
+
+            ctx.current?.restore();
         });
     };
 
@@ -186,6 +196,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
 
         ctx.current.lineWidth = 4;
         ctx.current.strokeStyle = 'rgba(255,1,2,0.6)';
+        ctx.current.lineCap = 'round';
 
         ctx.current.beginPath();
         for (let i = 0; i < path.others.length; i++) {
