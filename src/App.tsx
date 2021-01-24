@@ -25,7 +25,7 @@ function App() {
     return (
         <div className="App">
             <div className="wrap">
-                <BrowserRouter>
+                <BrowserRouter basename="/architecture-101">
                     <header style={{ zIndex: 9999 }}>
                         <Link to="/">
                             <img src="/logo.png" height="40px" alt="logo" />
