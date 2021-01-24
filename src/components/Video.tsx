@@ -3,12 +3,7 @@ import { Link } from 'react-router-dom';
 
 import './Video.scss';
 
-interface VideoProps {
-    // isVideoEnded: boolean;
-    // setIsVideoEnded: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-function Video({}: VideoProps) {
+function Video() {
     const [videoEnded, setVideoEnded] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 

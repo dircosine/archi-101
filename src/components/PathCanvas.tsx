@@ -1,18 +1,21 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useContext, useEffect, useRef } from 'react';
 import { PathPhase } from '../pages/PathPage';
 import { LatLng, Point } from '../utils/map';
 
 import { PathContext } from '../pages/PathPage';
 import { MapEvents } from './PathDraw';
+import { PassThrough } from 'stream';
 
 interface PathCanvasProps {
     map: any;
     mapElemId: string;
     phase: PathPhase;
     mapEvent: MapEvents;
+    center: LatLng;
 }
 
-function PathCanvas({ map, mapElemId, phase, mapEvent }: PathCanvasProps) {
+function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctx = useRef<CanvasRenderingContext2D | null>(null);
     const stageWidth = useRef(0);
@@ -20,29 +23,37 @@ function PathCanvas({ map, mapElemId, phase, mapEvent }: PathCanvasProps) {
     const path = useContext(PathContext);
 
     useEffect(() => {
-        if (canvasRef.current && map && ['draw', 'viewPath'].includes(phase)) {
+        if (canvasRef.current && map && !ctx.current) {
             initCavans();
-
-            if (phase === 'draw') {
-                initDraw();
-            } else if (phase === 'viewPath') {
-                const latLng = new kakao.maps.LatLng(path[path.length - 1].Ma, path[path.length - 1].La);
-                map.setCenter(latLng);
-                drawPath();
-            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        if (map && phase === 'draw') {
+            setTimeout(() => initDraw(), 1000);
+        }
     }, [phase, map]);
 
     useEffect(() => {
+        if (map) {
+            ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
+            console.log('ue1');
+            drawOthers();
+        }
+    }, [map, center]);
+
+    useEffect(() => {
         if (mapEvent === 'dragStart' || mapEvent === 'zoomStart') {
+            console.log('clear');
             ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
         }
-
-        if (mapEvent === 'dragEnd' || mapEvent === 'zoomChanged') {
-            drawPath();
-        }
     }, [mapEvent]);
+
+    // useEffect(() => {
+    //     if (canvasRef.current && map) {
+    //         map.setCenter(center);
+    //         map.setLevel(4);
+    //         drawPath();
+    //     }
+    // }, [center]);
 
     const initCavans = () => {
         if (!canvasRef.current) {
@@ -67,7 +78,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent }: PathCanvasProps) {
         ctx.current.scale(pixelRatio, pixelRatio);
 
         ctx.current.lineWidth = 5;
-        ctx.current.strokeStyle = 'red';
+        ctx.current.strokeStyle = 'rgba(255,1,2,0.5)';
         ctx.current.lineCap = 'round';
 
         // let levelChanging = false;
@@ -93,20 +104,24 @@ function PathCanvas({ map, mapElemId, phase, mapEvent }: PathCanvasProps) {
         }
         const mapProjection = map.getProjection();
 
-        let pushcounter = 0;
-        let centerMovedX = 0;
-        let centerMovedY = 0;
+        const initCenter = map.getCenter();
+        const containterPoint = mapProjection.containerPointFromCoords(initCenter);
+        const point = mapProjection.pointFromCoords(initCenter);
 
-        let initPoint: Point | null = null;
+        let pushcounter = 0;
+        let centerMovedX = point.x - containterPoint.x;
+        let centerMovedY = point.y - containterPoint.y;
+
+        path.my.push(map.getCenter());
 
         let isDown = false;
 
         canvasRef.current.addEventListener('pointerdown', (e) => {
             isDown = true;
-            if (!initPoint) {
-                initPoint = new kakao.maps.Point(stageWidth.current / 2, stageHeight.current / 2);
-                map.setCenter(mapProjection.coordsFromPoint(initPoint));
-            }
+
+            const lastCoords = path.my[path.my.length - 1];
+            const lastPoint: Point = mapProjection.containerPointFromCoords(lastCoords);
+            ctx.current?.moveTo(lastPoint.x, lastPoint.y);
         });
 
         canvasRef.current.addEventListener('pointermove', (e) => {
@@ -131,27 +146,25 @@ function PathCanvas({ map, mapElemId, phase, mapEvent }: PathCanvasProps) {
                 ctx.current.clearRect(0, 0, stageWidth.current, stageHeight.current);
                 ctx.current.save();
                 ctx.current.beginPath();
-                for (let i = 0; i < path.length; i++) {
-                    const point: Point = mapProjection.pointFromCoords(path[i]);
+                for (let i = 0; i < path.my.length; i++) {
+                    const point: Point = mapProjection.pointFromCoords(path.my[i]);
                     ctx.current.lineTo(point.x - centerMovedX, point.y - centerMovedY);
                 }
                 ctx.current.stroke();
                 ctx.current.restore();
+
+                drawOthers();
             } else if (pushcounter >= 5) {
                 pushcounter = 0;
                 const point: Point = new kakao.maps.Point(e.offsetX + centerMovedX, e.offsetY + centerMovedY);
                 const coords: LatLng = mapProjection.coordsFromPoint(point);
 
-                path.push(coords);
+                const _point: Point = mapProjection.containerPointFromCoords(coords);
+                ctx.current.lineTo(_point.x, _point.y);
 
-                ctx.current.save();
-                ctx.current.beginPath();
-                for (let i = 0; i < path.length; i++) {
-                    const point: Point = mapProjection.containerPointFromCoords(path[i]);
-                    ctx.current.lineTo(point.x, point.y);
-                }
                 ctx.current.stroke();
-                ctx.current.restore();
+
+                path.my.push(coords);
             }
         });
 
@@ -160,17 +173,29 @@ function PathCanvas({ map, mapElemId, phase, mapEvent }: PathCanvasProps) {
         });
     };
 
-    const drawPath = () => {
+    const drawOthers = () => {
         if (!ctx.current) {
             return;
         }
+
+        console.log('draw others!');
+
         const mapProjection = map.getProjection();
 
         ctx.current.save();
+
+        ctx.current.lineWidth = 4;
+        ctx.current.strokeStyle = 'rgba(255,1,2,0.6)';
+
         ctx.current.beginPath();
-        for (let i = 0; i < path.length; i++) {
-            const point: Point = mapProjection.containerPointFromCoords(new kakao.maps.LatLng(path[i].Ma, path[i].La));
-            ctx.current.lineTo(point.x, point.y);
+        for (let i = 0; i < path.others.length; i++) {
+            const other = path.others[i];
+            for (let j = 0; j < other.length; j++) {
+                const point: Point = mapProjection.containerPointFromCoords(
+                    new kakao.maps.LatLng(other[j].Ma, other[j].La),
+                );
+                ctx.current.lineTo(point.x, point.y);
+            }
         }
         ctx.current.stroke();
         ctx.current.restore();
