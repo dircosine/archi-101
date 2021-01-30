@@ -1,7 +1,7 @@
 import { createContext, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import PathDraw from '../components/PathDraw';
+import PathDraw, { DrawControl } from '../components/PathDraw';
 import useInput from '../hooks/useInput';
 import { LatLng } from '../utils/map';
 
@@ -25,27 +25,29 @@ type Path = {
 };
 
 export type PathContextType = {
-    others: Path[];
-    my: LatLng[];
+    othersPath: Path[];
+    myPath: LatLng[];
+    setMyPath: React.Dispatch<React.SetStateAction<LatLng[]>>;
 };
 
 export const PathContext = createContext<PathContextType>({
-    others: [],
-    my: [],
+    othersPath: [],
+    myPath: [],
+    setMyPath: () => {},
 });
 
-const myPath: LatLng[] = [];
 const othersPath: Path[] = JSON.parse(window.localStorage.getItem('paths') || '[]');
 
 function PathPage() {
-    const [phase, setPhase] = useState<PathPhase>('searchStarting');
-    // const [phase, setPhase] = useState<PathPhase>('draw');
+    // const [phase, setPhase] = useState<PathPhase>('searchStarting');
+    const [phase, setPhase] = useState<PathPhase>('draw');
+    const [myPath, setMyPath] = useState<LatLng[]>([]);
 
     const startingKeyword = useInput('');
     const destinationKeyword = useInput('');
 
-    const [starting, setStarting] = useState<LatLng | null>(null);
-    // const [starting, setStarting] = useState<LatLng | null>(new kakao.maps.LatLng(37.4918782, 127.0324566));
+    // const [starting, setStarting] = useState<LatLng | null>(null);
+    const [starting, setStarting] = useState<LatLng | null>(new kakao.maps.LatLng(37.4918782, 127.0324566));
     const [destination, setDestination] = useState<LatLng | null>(null);
     const [bounds, setBounds] = useState<any>(null);
 
@@ -121,10 +123,14 @@ function PathPage() {
         window.localStorage.setItem('myPathIds', JSON.stringify([...myPathIds, pathId]));
     };
 
+    const undo = () => {
+        setMyPath(myPath.slice(0, -5));
+    };
+
     return (
         <div className="PathPage">
-            <section>
-                <PathContext.Provider value={{ others: othersPath, my: myPath }}>
+            <section className="map">
+                <PathContext.Provider value={{ othersPath, myPath, setMyPath }}>
                     <PathDraw
                         phase={phase}
                         starting={starting}
@@ -132,12 +138,11 @@ function PathPage() {
                         bounds={bounds}
                         setStarting={setStarting}
                         setDestination={setDestination}
-                        setPhase={setPhase}
                     />
                 </PathContext.Provider>
             </section>
 
-            <section className="controlSection">
+            <section className="control">
                 {phase === 'searchStarting' && (
                     <div className="searchWrap">
                         <p>어디서 출발해요?</p>
@@ -159,7 +164,12 @@ function PathPage() {
 
                 {phase === 'confirmBoth' && <button onClick={handleConfirm}>출발!</button>}
 
-                {phase === 'draw' && <button onClick={uploadPath}>업로드</button>}
+                {phase === 'draw' && (
+                    <div className="tools">
+                        <button onClick={undo}>undo</button>
+                        <button onClick={uploadPath}>업로드</button>
+                    </div>
+                )}
             </section>
         </div>
     );

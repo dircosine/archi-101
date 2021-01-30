@@ -22,6 +22,7 @@ const destinationDragImage = new kakao.maps.MarkerImage('sticker_drag.svg', new 
 });
 
 export type MapEvents = 'none' | 'dragStart' | 'dragEnd' | 'zoomStart' | 'zoomChanged';
+export type DrawControl = 'none' | 'undo';
 
 interface PathDrawProps {
     phase: PathPhase;
@@ -30,10 +31,9 @@ interface PathDrawProps {
     bounds: any;
     setStarting: React.Dispatch<React.SetStateAction<LatLng | null>>;
     setDestination: React.Dispatch<React.SetStateAction<LatLng | null>>;
-    setPhase: React.Dispatch<React.SetStateAction<PathPhase>>;
 }
 
-function PathDraw({ phase, starting, destination, bounds, setStarting, setDestination, setPhase }: PathDrawProps) {
+function PathDraw({ phase, starting, destination, bounds, setStarting, setDestination }: PathDrawProps) {
     const [map, setMap] = useState<any>(null);
     const [mapEvent, setMapDragEvent] = useState<MapEvents>('none');
     const [canvasCenter, setCanvasCenter] = useState<LatLng>(new kakao.maps.LatLng(37.4918782, 127.0324566));

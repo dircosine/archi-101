@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BASE_NAME } from '../App';
 
 import './Video.scss';
 
@@ -24,7 +25,7 @@ function Video() {
                         src="https://archi101.s3.ap-northeast-2.amazonaws.com/ch1-540.mp4"
                         type="video/mp4"
                     ></source> */}
-                    <source src="ch1-540.mp4" type="video/mp4" />
+                    <source src={`${BASE_NAME}/ch1-540.mp4`} type="video/mp4" />
                 </video>
                 {videoEnded && (
                     <>

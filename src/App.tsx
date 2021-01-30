@@ -30,7 +30,7 @@ function App() {
                 <BrowserRouter basename={BASE_NAME}>
                     <header style={{ zIndex: 9999 }}>
                         <Link to="/">
-                            <img src="logo.png" height="40px" alt="logo" />
+                            <img src={`${BASE_NAME}/logo.png`} height="40px" alt="logo" />
                         </Link>
                     </header>
                     <Switch>

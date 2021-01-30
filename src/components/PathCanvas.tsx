@@ -15,11 +15,16 @@ interface PathCanvasProps {
 }
 
 function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps) {
+    const { othersPath, myPath, setMyPath } = useContext(PathContext);
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctx = useRef<CanvasRenderingContext2D | null>(null);
     const stageWidth = useRef(0);
     const stageHeight = useRef(0);
-    const path = useContext(PathContext);
+
+    const centerMovedX = useRef(0);
+    const centerMovedY = useRef(0);
+    const innerMyPath = useRef<LatLng[]>([]);
 
     useEffect(() => {
         if (canvasRef.current && map && !ctx.current) {
@@ -33,26 +38,23 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
 
     useEffect(() => {
         if (map) {
-            ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
-            console.log('ue1');
+            clearAll();
             drawOthers();
         }
     }, [map, center]);
 
     useEffect(() => {
         if (mapEvent === 'dragStart' || mapEvent === 'zoomStart') {
-            console.log('clear');
-            ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
+            clearAll();
         }
     }, [mapEvent]);
 
-    // useEffect(() => {
-    //     if (canvasRef.current && map) {
-    //         map.setCenter(center);
-    //         map.setLevel(4);
-    //         drawPath();
-    //     }
-    // }, [center]);
+    useEffect(() => {
+        innerMyPath.current = myPath;
+        clearAll();
+        drawMy();
+        drawOthers();
+    }, [myPath]);
 
     const initCavans = () => {
         if (!canvasRef.current) {
@@ -104,10 +106,10 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         const point = mapProjection.pointFromCoords(initCenter);
 
         let pushcounter = 0;
-        let centerMovedX = point.x - containterPoint.x;
-        let centerMovedY = point.y - containterPoint.y;
+        centerMovedX.current = point.x - containterPoint.x;
+        centerMovedY.current = point.y - containterPoint.y;
 
-        path.my.push(map.getCenter());
+        myPath.push(map.getCenter());
 
         let isDown = false;
 
@@ -126,9 +128,11 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
             ctx.current.strokeStyle = 'rgba(255,1,2,1)';
             ctx.current.lineCap = 'round';
 
-            const lastCoords = path.my[path.my.length - 1];
-            const lastPoint: Point = mapProjection.containerPointFromCoords(lastCoords);
-            ctx.current.moveTo(lastPoint.x, lastPoint.y);
+            const lastCoords = innerMyPath.current[innerMyPath.current.length - 1];
+            if (lastCoords) {
+                const lastPoint: Point = mapProjection.containerPointFromCoords(lastCoords);
+                ctx.current.moveTo(lastPoint.x, lastPoint.y);
+            }
         });
 
         canvasRef.current.addEventListener('pointermove', (e) => {
@@ -145,17 +149,20 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
                 e.offsetY > stageHeight.current - 40
             ) {
                 isDown = false;
-                const point: Point = new kakao.maps.Point(e.offsetX + centerMovedX, e.offsetY + centerMovedY);
+                const point: Point = new kakao.maps.Point(
+                    e.offsetX + centerMovedX.current,
+                    e.offsetY + centerMovedY.current,
+                );
                 map.setCenter(mapProjection.coordsFromPoint(point));
-                centerMovedX += e.offsetX - stageWidth.current / 2;
-                centerMovedY += e.offsetY - stageHeight.current / 2;
+                centerMovedX.current += e.offsetX - stageWidth.current / 2;
+                centerMovedY.current += e.offsetY - stageHeight.current / 2;
 
                 ctx.current.clearRect(0, 0, stageWidth.current, stageHeight.current);
                 ctx.current.save();
                 ctx.current.beginPath();
-                for (let i = 0; i < path.my.length; i++) {
-                    const point: Point = mapProjection.pointFromCoords(path.my[i]);
-                    ctx.current.lineTo(point.x - centerMovedX, point.y - centerMovedY);
+                for (let i = 0; i < innerMyPath.current.length; i++) {
+                    const point: Point = mapProjection.pointFromCoords(innerMyPath.current[i]);
+                    ctx.current.lineTo(point.x - centerMovedX.current, point.y - centerMovedY.current);
                 }
                 ctx.current.stroke();
                 ctx.current.restore();
@@ -163,7 +170,10 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
                 drawOthers();
             } else if (pushcounter >= 5) {
                 pushcounter = 0;
-                const point: Point = new kakao.maps.Point(e.offsetX + centerMovedX, e.offsetY + centerMovedY);
+                const point: Point = new kakao.maps.Point(
+                    e.offsetX + centerMovedX.current,
+                    e.offsetY + centerMovedY.current,
+                );
                 const coords: LatLng = mapProjection.coordsFromPoint(point);
 
                 const _point: Point = mapProjection.containerPointFromCoords(coords);
@@ -171,7 +181,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
 
                 ctx.current.stroke();
 
-                path.my.push(coords);
+                innerMyPath.current.push(coords);
             }
         });
 
@@ -179,15 +189,51 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
             isDown = false;
 
             ctx.current?.restore();
+
+            setMyPath(innerMyPath.current);
         });
+    };
+
+    const clearAll = () => ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
+
+    const drawMy = () => {
+        if (!ctx.current) {
+            return;
+        }
+        const mapProjection = map.getProjection();
+
+        const prevCenter = map.getCenter();
+        const newLastCoords = innerMyPath.current[innerMyPath.current.length - 1];
+
+        const prevCenterPoint = mapProjection.pointFromCoords(prevCenter);
+        const newLastPoint = mapProjection.pointFromCoords(newLastCoords);
+
+        console.log(newLastPoint);
+
+        centerMovedX.current += newLastPoint.x - prevCenterPoint.x;
+        centerMovedY.current += newLastPoint.y - prevCenterPoint.y;
+
+        map.setCenter(newLastCoords);
+
+        ctx.current.save();
+        ctx.current.beginPath();
+
+        ctx.current.lineWidth = 5;
+        ctx.current.strokeStyle = 'rgba(255,1,2,1)';
+        ctx.current.lineCap = 'round';
+
+        for (let i = 0; i < innerMyPath.current.length; i++) {
+            const point: Point = mapProjection.containerPointFromCoords(innerMyPath.current[i]);
+            ctx.current.lineTo(point.x, point.y);
+        }
+        ctx.current.stroke();
+        ctx.current.restore();
     };
 
     const drawOthers = () => {
         if (!ctx.current) {
             return;
         }
-
-        console.log('draw others!');
 
         const mapProjection = map.getProjection();
 
@@ -198,11 +244,11 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         ctx.current.lineCap = 'round';
 
         ctx.current.beginPath();
-        for (let i = 0; i < path.others.length; i++) {
-            const other = path.others[i];
-            for (let j = 0; j < other.coords?.length; j++) {
+        for (let i = 0; i < othersPath.length; i++) {
+            const otherPath = othersPath[i];
+            for (let j = 0; j < otherPath.coords?.length; j++) {
                 const point: Point = mapProjection.containerPointFromCoords(
-                    new kakao.maps.LatLng(other.coords[j].Ma, other.coords[j].La),
+                    new kakao.maps.LatLng(otherPath.coords[j].Ma, otherPath.coords[j].La),
                 );
                 ctx.current.lineTo(point.x, point.y);
             }
