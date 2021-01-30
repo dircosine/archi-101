@@ -6,36 +6,20 @@ import PathCanvas from './PathCanvas';
 
 import './PathDraw.scss';
 
-const startingImage = new kakao.maps.MarkerImage(
-    'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png',
-    new kakao.maps.Size(50, 45),
-    {
-        offset: new kakao.maps.Point(15, 43),
-    },
-);
-const startingDragImage = new kakao.maps.MarkerImage(
-    'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_drag.png',
-    new kakao.maps.Size(50, 64),
-    {
-        offset: new kakao.maps.Point(15, 54),
-    },
-);
+const startingImage = new kakao.maps.MarkerImage('sticker.svg', new kakao.maps.Size(30, 30), {
+    offset: new kakao.maps.Point(15, 15),
+});
+const startingDragImage = new kakao.maps.MarkerImage('sticker_drag.svg', new kakao.maps.Size(30, 30), {
+    offset: new kakao.maps.Point(15, 15),
+});
 
-const destinationImage = new kakao.maps.MarkerImage(
-    'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png',
-    new kakao.maps.Size(50, 45),
-    {
-        offset: new kakao.maps.Point(15, 43),
-    },
-);
+const destinationImage = new kakao.maps.MarkerImage('sticker.svg', new kakao.maps.Size(30, 30), {
+    offset: new kakao.maps.Point(15, 15),
+});
 
-const destinationDragImage = new kakao.maps.MarkerImage(
-    'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_drag.png',
-    new kakao.maps.Size(50, 64),
-    {
-        offset: new kakao.maps.Point(15, 54),
-    },
-);
+const destinationDragImage = new kakao.maps.MarkerImage('sticker_drag.svg', new kakao.maps.Size(30, 30), {
+    offset: new kakao.maps.Point(15, 15),
+});
 
 export type MapEvents = 'none' | 'dragStart' | 'dragEnd' | 'zoomStart' | 'zoomChanged';
 
@@ -60,8 +44,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
 
     const prevPhase = useRef<PathPhase>('searchStarting');
 
-    const overlay = useRef<any>(null);
-
     useEffect(() => {
         const wrap = document.getElementById('mapCanvasWrap');
 
@@ -76,9 +58,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
     }, [mapDivRef]);
 
     useEffect(() => {
-        const overlayContent = document.createElement('div');
-        overlayContent.innerHTML = `<div class="overlayContent"><button id="confirmButton">여기!</button></div>`;
-
         if (starting && phase === 'confirmStarting') {
             map.relayout();
 
@@ -94,10 +73,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
                 });
                 kakao.maps.event.addListener(startingMarker.current, 'dragstart', function () {
                     startingMarker.current.setImage(startingDragImage);
-
-                    if (overlay.current) {
-                        overlay.current.setMap(null);
-                    }
                 });
                 kakao.maps.event.addListener(startingMarker.current, 'dragend', function () {
                     startingMarker.current.setImage(startingImage);
@@ -109,17 +84,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
             setCanvasCenter(starting);
 
             startingMarker.current.setPosition(starting);
-
-            overlay.current = new kakao.maps.CustomOverlay({
-                map: map,
-                position: starting,
-                content: overlayContent,
-                yAnchor: 1,
-            });
-
-            document
-                .getElementById('confirmButton')
-                ?.addEventListener('click', () => handleConfirm('starting', overlay));
         }
         if (destination && phase === 'confirmDestination') {
             map.relayout();
@@ -137,10 +101,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
                 });
                 kakao.maps.event.addListener(destinationMarker.current, 'dragstart', function () {
                     destinationMarker.current.setImage(destinationDragImage);
-
-                    if (overlay.current) {
-                        overlay.current.setMap(null);
-                    }
                 });
                 kakao.maps.event.addListener(destinationMarker.current, 'dragend', function () {
                     destinationMarker.current.setImage(destinationImage);
@@ -152,17 +112,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
             setCanvasCenter(destination);
 
             destinationMarker.current.setPosition(destination);
-
-            overlay.current = new kakao.maps.CustomOverlay({
-                map: map,
-                position: destination,
-                content: overlayContent,
-                yAnchor: 1,
-            });
-
-            document
-                .getElementById('confirmButton')
-                ?.addEventListener('click', () => handleConfirm('destination', overlay));
         }
     }, [starting, destination, phase]);
 
@@ -210,21 +159,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
 
         setMap(kakoMap);
     };
-
-    const handleConfirm = (type: 'starting' | 'destination', overlay: any) => {
-        if (overlay.current) {
-            overlay.current.setMap(null);
-        }
-
-        if (type === 'starting') {
-            setPhase('searchDestination');
-        }
-        if (type === 'destination') {
-            setPhase('confirmBoth');
-        }
-    };
-
-    const isShowing = ['confirmStarting', 'confirmDestination', 'confirmBoth', 'draw', 'viewPath'].includes(phase);
 
     return (
         <div className="PathDraw" id="mapCanvasWrap" style={{ width: true ? '97%' : 0 }}>

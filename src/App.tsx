@@ -6,6 +6,8 @@ import PathPage from './pages/PathPage';
 
 export type Section = 'poster' | 'video' | 'path';
 
+export const BASE_NAME = '/architecture-101';
+
 // window.addEventListener(
 //     'scroll',
 //     (e) => {
@@ -25,10 +27,10 @@ function App() {
     return (
         <div className="App">
             <div className="wrap">
-                <BrowserRouter basename="/architecture-101">
+                <BrowserRouter basename={BASE_NAME}>
                     <header style={{ zIndex: 9999 }}>
                         <Link to="/">
-                            <img src="/logo.png" height="40px" alt="logo" />
+                            <img src="logo.png" height="40px" alt="logo" />
                         </Link>
                     </header>
                     <Switch>

@@ -95,8 +95,16 @@ function PathPage() {
         });
     };
 
-    const confirmBoth = () => {
-        setPhase('draw');
+    const handleConfirm = () => {
+        if (phase === 'confirmStarting') {
+            setPhase('searchDestination');
+        }
+        if (phase === 'confirmDestination') {
+            setPhase('confirmBoth');
+        }
+        if (phase === 'confirmBoth') {
+            setPhase('draw');
+        }
     };
 
     const uploadPath = () => {
@@ -115,36 +123,44 @@ function PathPage() {
 
     return (
         <div className="PathPage">
-            <PathContext.Provider value={{ others: othersPath, my: myPath }}>
-                <PathDraw
-                    phase={phase}
-                    starting={starting}
-                    destination={destination}
-                    bounds={bounds}
-                    setStarting={setStarting}
-                    setDestination={setDestination}
-                    setPhase={setPhase}
-                />
-            </PathContext.Provider>
+            <section>
+                <PathContext.Provider value={{ others: othersPath, my: myPath }}>
+                    <PathDraw
+                        phase={phase}
+                        starting={starting}
+                        destination={destination}
+                        bounds={bounds}
+                        setStarting={setStarting}
+                        setDestination={setDestination}
+                        setPhase={setPhase}
+                    />
+                </PathContext.Provider>
+            </section>
 
-            {phase === 'searchStarting' && (
-                <div className="searchWrap">
-                    <p>어디서 출발해요?</p>
-                    <input type="text" ref={startingInput} {...startingKeyword} />
-                    <button onClick={searchStarting}>검색</button>
-                </div>
-            )}
-            {phase === 'searchDestination' && (
-                <div className="searchWrap">
-                    <p>어디까지 가요?</p>
-                    <input type="text" ref={destinationInput} {...destinationKeyword} />
-                    <button onClick={searchDestination}>검색</button>
-                </div>
-            )}
+            <section className="controlSection">
+                {phase === 'searchStarting' && (
+                    <div className="searchWrap">
+                        <p>어디서 출발해요?</p>
+                        <input type="text" ref={startingInput} {...startingKeyword} />
+                        <button onClick={searchStarting}>검색</button>
+                    </div>
+                )}
+                {phase === 'searchDestination' && (
+                    <div className="searchWrap">
+                        <p>어디까지 가요?</p>
+                        <input type="text" ref={destinationInput} {...destinationKeyword} />
+                        <button onClick={searchDestination}>검색</button>
+                    </div>
+                )}
 
-            {phase === 'confirmBoth' && <button onClick={confirmBoth}>확인</button>}
+                {['confirmStarting', 'confirmDestination'].includes(phase) && (
+                    <button onClick={handleConfirm}>확인</button>
+                )}
 
-            {phase === 'draw' && <button onClick={uploadPath}>업로드</button>}
+                {phase === 'confirmBoth' && <button onClick={handleConfirm}>출발!</button>}
+
+                {phase === 'draw' && <button onClick={uploadPath}>업로드</button>}
+            </section>
         </div>
     );
 }

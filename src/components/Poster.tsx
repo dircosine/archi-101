@@ -18,19 +18,19 @@ function Poster(props: PosterProps) {
     return (
         <section className="Poster">
             <div className="poster">
-                <img src="/archi101-poster-0.jpg" alt="poster" />
+                <img src="archi101-poster-0.jpg" alt="poster" />
                 {/* <img src="https://archi101.s3.ap-northeast-2.amazonaws.com/archi101-poster-0.jpg" alt="poster" /> */}
             </div>
             <div className="poster">
-                <img src="/archi101-poster-1.jpg" alt="poster" />
+                <img src="archi101-poster-1.jpg" alt="poster" />
                 {/* <img src="https://archi101.s3.ap-northeast-2.amazonaws.com/archi101-poster-1.jpg" alt="poster" /> */}
             </div>
             <div className="poster">
-                <img src="/archi101-poster-2.jpg" alt="poster" />
+                <img src="archi101-poster-2.jpg" alt="poster" />
                 {/* <img src="https://archi101.s3.ap-northeast-2.amazonaws.com/archi101-poster-2.jpg" alt="poster" /> */}
             </div>
             <div className="poster">
-                <img src="/archi101-poster-3.jpg" alt="poster" />
+                <img src="archi101-poster-3.jpg" alt="poster" />
                 {/* <img src="https://archi101.s3.ap-northeast-2.amazonaws.com/archi101-poster-3.jpg" alt="poster" /> */}
             </div>
         </section>

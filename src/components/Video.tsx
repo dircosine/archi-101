@@ -24,7 +24,7 @@ function Video() {
                         src="https://archi101.s3.ap-northeast-2.amazonaws.com/ch1-540.mp4"
                         type="video/mp4"
                     ></source> */}
-                    <source src="/ch1-540.mp4" type="video/mp4" />
+                    <source src="ch1-540.mp4" type="video/mp4" />
                 </video>
                 {videoEnded && (
                     <>
