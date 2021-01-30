@@ -1,7 +1,7 @@
 import { createContext, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import PathDraw, { DrawControl } from '../components/PathDraw';
+import PathDraw from '../components/PathDraw';
 import useInput from '../hooks/useInput';
 import { LatLng } from '../utils/map';
 
@@ -39,15 +39,15 @@ export const PathContext = createContext<PathContextType>({
 const othersPath: Path[] = JSON.parse(window.localStorage.getItem('paths') || '[]');
 
 function PathPage() {
-    // const [phase, setPhase] = useState<PathPhase>('searchStarting');
-    const [phase, setPhase] = useState<PathPhase>('draw');
+    const [phase, setPhase] = useState<PathPhase>('searchStarting');
+    // const [phase, setPhase] = useState<PathPhase>('draw');
     const [myPath, setMyPath] = useState<LatLng[]>([]);
 
     const startingKeyword = useInput('');
     const destinationKeyword = useInput('');
 
-    // const [starting, setStarting] = useState<LatLng | null>(null);
-    const [starting, setStarting] = useState<LatLng | null>(new kakao.maps.LatLng(37.4918782, 127.0324566));
+    const [starting, setStarting] = useState<LatLng | null>(null);
+    // const [starting, setStarting] = useState<LatLng | null>(new kakao.maps.LatLng(37.4918782, 127.0324566));
     const [destination, setDestination] = useState<LatLng | null>(null);
     const [bounds, setBounds] = useState<any>(null);
 
@@ -109,7 +109,7 @@ function PathPage() {
         }
     };
 
-    const uploadPath = () => {
+    const handleArrival = () => {
         const pathId = uuidv4();
         const path: Path = {
             id: pathId,
@@ -124,7 +124,14 @@ function PathPage() {
     };
 
     const undo = () => {
-        setMyPath(myPath.slice(0, -5));
+        if (myPath.length <= 1) {
+            return;
+        }
+        const newMyPath = myPath.slice(0, -8);
+        if (!newMyPath.length) {
+            newMyPath.push(starting!);
+        }
+        setMyPath(newMyPath);
     };
 
     return (
@@ -165,9 +172,9 @@ function PathPage() {
                 {phase === 'confirmBoth' && <button onClick={handleConfirm}>출발!</button>}
 
                 {phase === 'draw' && (
-                    <div className="tools">
+                    <div className="controls">
                         <button onClick={undo}>undo</button>
-                        <button onClick={uploadPath}>업로드</button>
+                        <button onClick={handleArrival}>도착!</button>
                     </div>
                 )}
             </section>

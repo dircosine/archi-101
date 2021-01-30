@@ -124,7 +124,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
             ctx.current.save();
             ctx.current.beginPath();
 
-            ctx.current.lineWidth = 5;
+            ctx.current.lineWidth = 7;
             ctx.current.strokeStyle = 'rgba(255,1,2,1)';
             ctx.current.lineCap = 'round';
 
@@ -208,8 +208,6 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         const prevCenterPoint = mapProjection.pointFromCoords(prevCenter);
         const newLastPoint = mapProjection.pointFromCoords(newLastCoords);
 
-        console.log(newLastPoint);
-
         centerMovedX.current += newLastPoint.x - prevCenterPoint.x;
         centerMovedY.current += newLastPoint.y - prevCenterPoint.y;
 
@@ -243,17 +241,17 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
         ctx.current.strokeStyle = 'rgba(255,1,2,0.6)';
         ctx.current.lineCap = 'round';
 
-        ctx.current.beginPath();
         for (let i = 0; i < othersPath.length; i++) {
             const otherPath = othersPath[i];
+            ctx.current.beginPath();
             for (let j = 0; j < otherPath.coords?.length; j++) {
                 const point: Point = mapProjection.containerPointFromCoords(
                     new kakao.maps.LatLng(otherPath.coords[j].Ma, otherPath.coords[j].La),
                 );
                 ctx.current.lineTo(point.x, point.y);
             }
+            ctx.current.stroke();
         }
-        ctx.current.stroke();
         ctx.current.restore();
     };
 
