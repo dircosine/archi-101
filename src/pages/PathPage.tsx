@@ -1,4 +1,5 @@
 import { createContext, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 import PathDraw from '../components/PathDraw';
@@ -28,20 +29,25 @@ export type PathContextType = {
     othersPath: Path[];
     myPath: LatLng[];
     setMyPath: React.Dispatch<React.SetStateAction<LatLng[]>>;
+    setIsArrival: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const PathContext = createContext<PathContextType>({
     othersPath: [],
     myPath: [],
     setMyPath: () => {},
+    setIsArrival: () => {},
 });
 
 const othersPath: Path[] = JSON.parse(window.localStorage.getItem('paths') || '[]');
 
 function PathPage() {
+    const params = useParams<{ destination: string }>();
+
     const [phase, setPhase] = useState<PathPhase>('searchStarting');
     // const [phase, setPhase] = useState<PathPhase>('draw');
     const [myPath, setMyPath] = useState<LatLng[]>([]);
+    const [isArrival, setIsArrival] = useState(false);
 
     const startingKeyword = useInput('');
     const destinationKeyword = useInput('');
@@ -65,6 +71,8 @@ function PathPage() {
             setBounds(bounds);
         }
     }, [starting, destination, phase]);
+
+    console.log(params.destination);
 
     useEffect(() => {
         if (phase === 'searchStarting') {
@@ -137,7 +145,7 @@ function PathPage() {
     return (
         <div className="PathPage">
             <section className="map">
-                <PathContext.Provider value={{ othersPath, myPath, setMyPath }}>
+                <PathContext.Provider value={{ othersPath, myPath, setMyPath, setIsArrival }}>
                     <PathDraw
                         phase={phase}
                         starting={starting}
@@ -174,7 +182,9 @@ function PathPage() {
                 {phase === 'draw' && (
                     <div className="controls">
                         <button onClick={undo}>undo</button>
-                        <button onClick={handleArrival}>도착!</button>
+                        <button onClick={handleArrival} disabled={!isArrival}>
+                            도착!
+                        </button>
                     </div>
                 )}
             </section>

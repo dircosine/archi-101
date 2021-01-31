@@ -139,7 +139,6 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
 
         // *** map events
         kakao.maps.event.addListener(kakoMap, 'dragstart', function () {
-            console.log(kakoMap.getCenter());
             setMapDragEvent('dragStart');
         });
 
@@ -161,9 +160,16 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
     };
 
     return (
-        <div className="PathDraw" id="mapCanvasWrap" style={{ width: true ? '97%' : 0 }}>
+        <div className="PathDraw" id="mapCanvasWrap" style={{ width: true ? '98%' : 0 }}>
             <div ref={mapDivRef} className="map" id="map" />
-            <PathCanvas map={map} mapElemId="map" phase={phase} mapEvent={mapEvent} center={canvasCenter} />
+            <PathCanvas
+                map={map}
+                mapElemId="map"
+                phase={phase}
+                mapEvent={mapEvent}
+                center={canvasCenter}
+                destination={destination}
+            />
         </div>
     );
 }

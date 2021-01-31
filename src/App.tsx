@@ -8,24 +8,10 @@ export type Section = 'poster' | 'video' | 'path';
 
 export const BASE_NAME = '/architecture-101';
 
-// window.addEventListener(
-//     'scroll',
-//     (e) => {
-//         e.preventDefault();
-//         console.log(window.pageYOffset);
-//         const scrollValue = window.pageYOffset / (document.body.offsetHeight - window.innerHeight);
-//         if (window.pageYOffset >= 500) {
-//             window.scrollTo(0, 500);
-//         }
-//         // console.log(scrollValue);
-//         // document.body.style.setProperty('--scroll', scrollValue.toString());
-//     },
-//     false,
-// );
-
 function App() {
+    console.log();
     return (
-        <div className="App">
+        <div className={`App ${window.location.pathname.split('/').slice(-1)[0] ? 'App--pathPage' : ''}`}>
             <div className="wrap">
                 <BrowserRouter basename={BASE_NAME}>
                     <header style={{ zIndex: 9999 }}>

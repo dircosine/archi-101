@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useContext, useEffect, useRef } from 'react';
 import { PathPhase } from '../pages/PathPage';
-import { LatLng, Point } from '../utils/map';
+import { LatLng, measure, Point } from '../utils/map';
 
 import { PathContext } from '../pages/PathPage';
 import { MapEvents } from './PathDraw';
@@ -12,10 +12,11 @@ interface PathCanvasProps {
     phase: PathPhase;
     mapEvent: MapEvents;
     center: LatLng;
+    destination: LatLng | null;
 }
 
-function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps) {
-    const { othersPath, myPath, setMyPath } = useContext(PathContext);
+function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: PathCanvasProps) {
+    const { othersPath, myPath, setMyPath, setIsArrival } = useContext(PathContext);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctx = useRef<CanvasRenderingContext2D | null>(null);
@@ -190,7 +191,14 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center }: PathCanvasProps
 
             ctx.current?.restore();
 
+            const lastCoords = innerMyPath.current[innerMyPath.current.length - 1];
+
             setMyPath(innerMyPath.current);
+
+            if (lastCoords && destination && measure(lastCoords, destination) < 300) {
+                // 300m 이내까지 myPath 가 그려졌을 때
+                setIsArrival(true);
+            }
         });
     };
 

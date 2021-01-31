@@ -3,6 +3,10 @@
     overflow-y: scroll;
     overflow-x: hidden;
 
+    &--pathPage {
+        overflow-y: hidden;
+    }
+
     background-color: #ffffff;
     opacity: 1;
     background-image: linear-gradient(#ddd 1px, transparent 1px), linear-gradient(to right, #ddd 1px, #ffffff 1px);
@@ -38,7 +42,6 @@
     }
 
     .PathPage {
-        // margin-top: 60px;
         width: 100%;
         height: 100vh;
 
