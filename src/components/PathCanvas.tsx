@@ -57,6 +57,11 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
         drawOthers();
     }, [myPath]);
 
+    useEffect(() => {
+        clearAll();
+        drawOthers();
+    }, [othersPath]);
+
     const initCavans = () => {
         if (!canvasRef.current) {
             return null;

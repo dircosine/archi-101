@@ -6,20 +6,36 @@ import PathCanvas from './PathCanvas';
 
 import './PathDraw.scss';
 
-const startingImage = new kakao.maps.MarkerImage('sticker.svg', new kakao.maps.Size(30, 30), {
-    offset: new kakao.maps.Point(15, 15),
-});
-const startingDragImage = new kakao.maps.MarkerImage('sticker_drag.svg', new kakao.maps.Size(30, 30), {
-    offset: new kakao.maps.Point(15, 15),
-});
+const startingImage = new kakao.maps.MarkerImage(
+    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker.svg',
+    new kakao.maps.Size(30, 30),
+    {
+        offset: new kakao.maps.Point(15, 15),
+    },
+);
+const startingDragImage = new kakao.maps.MarkerImage(
+    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_drag.svg',
+    new kakao.maps.Size(30, 30),
+    {
+        offset: new kakao.maps.Point(15, 15),
+    },
+);
 
-const destinationImage = new kakao.maps.MarkerImage('sticker.svg', new kakao.maps.Size(30, 30), {
-    offset: new kakao.maps.Point(15, 15),
-});
+const destinationImage = new kakao.maps.MarkerImage(
+    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker.svg',
+    new kakao.maps.Size(30, 30),
+    {
+        offset: new kakao.maps.Point(15, 15),
+    },
+);
 
-const destinationDragImage = new kakao.maps.MarkerImage('sticker_drag.svg', new kakao.maps.Size(30, 30), {
-    offset: new kakao.maps.Point(15, 15),
-});
+const destinationDragImage = new kakao.maps.MarkerImage(
+    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_drag.svg',
+    new kakao.maps.Size(30, 30),
+    {
+        offset: new kakao.maps.Point(15, 15),
+    },
+);
 
 export type MapEvents = 'none' | 'dragStart' | 'dragEnd' | 'zoomStart' | 'zoomChanged';
 export type DrawControl = 'none' | 'undo';

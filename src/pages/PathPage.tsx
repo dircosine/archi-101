@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { createContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -39,13 +40,12 @@ export const PathContext = createContext<PathContextType>({
     setIsArrival: () => {},
 });
 
-const othersPath: Path[] = JSON.parse(window.localStorage.getItem('paths') || '[]');
-
 function PathPage() {
     const params = useParams<{ destination: string }>();
 
     const [phase, setPhase] = useState<PathPhase>('searchStarting');
     // const [phase, setPhase] = useState<PathPhase>('draw');
+    const [othersPath, setOtherPath] = useState<Path[]>([]);
     const [myPath, setMyPath] = useState<LatLng[]>([]);
     const [isArrival, setIsArrival] = useState(false);
 
@@ -61,6 +61,21 @@ function PathPage() {
     const destinationInput = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        const fetchPaths = async () => {
+            const { data: pathsKeys } = await axios.get<string[]>('http://localhost:4000/common/keys');
+
+            console.log(pathsKeys);
+            const results = await Promise.all(
+                pathsKeys.map((key) => axios.get<Path>(`https://archi101.s3.ap-northeast-2.amazonaws.com/${key}`)),
+            );
+
+            setOtherPath(results.map((res) => res.data));
+        };
+
+        fetchPaths();
+    }, []);
+
+    useEffect(() => {
         if (starting && destination && phase === 'confirmBoth') {
             // console.log(measure(starting, destination));
 
@@ -71,8 +86,6 @@ function PathPage() {
             setBounds(bounds);
         }
     }, [starting, destination, phase]);
-
-    console.log(params.destination);
 
     useEffect(() => {
         if (phase === 'searchStarting') {
@@ -117,20 +130,6 @@ function PathPage() {
         }
     };
 
-    const handleArrival = () => {
-        const pathId = uuidv4();
-        const path: Path = {
-            id: pathId,
-            coords: myPath,
-            starting: starting!,
-            destination: destination!,
-        };
-        window.localStorage.setItem('paths', JSON.stringify([...othersPath, path]));
-
-        const myPathIds = JSON.parse(window.localStorage.getItem('myPathIds') || '[]');
-        window.localStorage.setItem('myPathIds', JSON.stringify([...myPathIds, pathId]));
-    };
-
     const undo = () => {
         if (myPath.length <= 1) {
             return;
@@ -140,6 +139,39 @@ function PathPage() {
             newMyPath.push(starting!);
         }
         setMyPath(newMyPath);
+    };
+
+    const uploadPath = async (path: Path) => {
+        const blob = new Blob([JSON.stringify(path)], { type: 'application/json' });
+        console.log(blob);
+
+        let fileName = `${path.id}.json`;
+        let fileType = 'application/json';
+
+        const { data: signRes } = await axios.post('http://localhost:4000/common/sign_s3', {
+            fileName: fileName,
+            fileType: fileType,
+        });
+
+        await axios.put(signRes.signedRequest, blob, {
+            headers: {
+                'Content-Type': fileType,
+            },
+        });
+    };
+
+    const handleArrival = () => {
+        const pathId = uuidv4();
+        const path: Path = {
+            id: pathId,
+            coords: myPath,
+            starting: starting!,
+            destination: destination!,
+        };
+        const myPathIds = JSON.parse(window.localStorage.getItem('myPathIds') || '[]');
+        window.localStorage.setItem('myPathIds', JSON.stringify([...myPathIds, pathId]));
+
+        uploadPath(path);
     };
 
     return (
