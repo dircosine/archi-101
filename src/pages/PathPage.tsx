@@ -62,7 +62,11 @@ function PathPage() {
 
     useEffect(() => {
         const fetchPaths = async () => {
-            const { data: pathsKeys } = await axios.get<string[]>('http://localhost:4000/common/keys');
+            const { data } = await axios.get<{ statusCode: number; body: string }>(
+                'https://ii7sy8a53m.execute-api.ap-northeast-2.amazonaws.com/default/archi101-getPathsKeys',
+            );
+
+            const pathsKeys: Path[] = JSON.parse(data.body);
 
             console.log(pathsKeys);
             const results = await Promise.all(
@@ -148,12 +152,17 @@ function PathPage() {
         let fileName = `${path.id}.json`;
         let fileType = 'application/json';
 
-        const { data: signRes } = await axios.post('http://localhost:4000/common/sign_s3', {
-            fileName: fileName,
-            fileType: fileType,
-        });
+        const { data } = await axios.post(
+            'https://ii7sy8a53m.execute-api.ap-northeast-2.amazonaws.com/default/archi101-gets3signedurl-api',
+            {
+                fileName: fileName,
+                fileType: fileType,
+            },
+        );
 
-        await axios.put(signRes.signedRequest, blob, {
+        const signedRequest = JSON.parse(data.body);
+
+        await axios.put(signedRequest, blob, {
             headers: {
                 'Content-Type': fileType,
             },
