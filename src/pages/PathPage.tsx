@@ -91,14 +91,14 @@ function PathPage() {
         }
     }, [starting, destination, phase]);
 
-    useEffect(() => {
-        if (phase === 'searchStarting') {
-            startingInput.current?.focus();
-        }
-        if (phase === 'searchDestination') {
-            destinationInput.current?.focus();
-        }
-    }, [phase]);
+    // useEffect(() => {
+    //     if (phase === 'searchStarting') {
+    //         startingInput.current?.focus();
+    //     }
+    //     if (phase === 'searchDestination') {
+    //         destinationInput.current?.focus();
+    //     }
+    // }, [phase]);
 
     const searchStarting = () => {
         geocoder.addressSearch(startingKeyword.value, function (result: any, status: string) {
@@ -107,6 +107,7 @@ function PathPage() {
                 console.log(latLng);
                 setStarting(latLng);
                 setPhase('confirmStarting');
+                setStarting(null);
             }
         });
     };
@@ -118,6 +119,7 @@ function PathPage() {
                 console.log(latLng);
                 setDestination(latLng);
                 setPhase('confirmDestination');
+                setDestination(null);
             }
         });
     };
@@ -183,6 +185,15 @@ function PathPage() {
         uploadPath(path);
     };
 
+    const handleSearchInputFocus = () => {
+        if (phase === 'confirmStarting') {
+            setPhase('searchStarting');
+        }
+        if (phase === 'confirmDestination') {
+            setPhase('searchDestination');
+        }
+    };
+
     return (
         <div className="PathPage">
             <section className="map">
@@ -192,41 +203,78 @@ function PathPage() {
                         starting={starting}
                         destination={destination}
                         bounds={bounds}
+                        setPhase={setPhase}
                         setStarting={setStarting}
                         setDestination={setDestination}
                     />
                 </PathContext.Provider>
             </section>
 
-            <section className="control">
+            <section className="control searchWrap">
+                {/* *** starting *** */}
+                {phase === 'searchStarting' && <p>어디서 출발해요?</p>}
+                {(phase === 'searchStarting' || phase === 'confirmStarting') && (
+                    <input
+                        type="text"
+                        ref={startingInput}
+                        autoFocus
+                        onFocus={handleSearchInputFocus}
+                        {...startingKeyword}
+                    />
+                )}
                 {phase === 'searchStarting' && (
-                    <div className="searchWrap">
-                        <p>어디서 출발해요?</p>
-                        <input type="text" ref={startingInput} {...startingKeyword} />
-                        <button onClick={searchStarting}>검색</button>
-                    </div>
+                    <button onClick={searchStarting} disabled={!startingKeyword.value}>
+                        검색
+                    </button>
                 )}
-                {phase === 'searchDestination' && (
-                    <div className="searchWrap">
-                        <p>어디까지 가요?</p>
-                        <input type="text" ref={destinationInput} {...destinationKeyword} />
-                        <button onClick={searchDestination}>검색</button>
-                    </div>
-                )}
-
-                {['confirmStarting', 'confirmDestination'].includes(phase) && (
-                    <button onClick={handleConfirm}>확인</button>
-                )}
-
-                {phase === 'confirmBoth' && <button onClick={handleConfirm}>출발!</button>}
-
-                {phase === 'draw' && (
-                    <div className="controls">
-                        <button onClick={undo}>undo</button>
-                        <button onClick={handleArrival} disabled={!isArrival}>
-                            도착!
+                {phase === 'confirmStarting' && (
+                    <div>
+                        <p style={{ backgroundColor: 'white' }}>출발하는 곳에 빨간색 스티커를 붙여볼게요 👆</p>
+                        <button onClick={handleConfirm} disabled={!starting}>
+                            다음!
                         </button>
                     </div>
+                )}
+
+                {/* *** destination *** */}
+                {phase === 'searchDestination' && <p>어디까지 가요?</p>}
+                {(phase === 'searchDestination' || phase === 'confirmDestination') && (
+                    <input
+                        type="text"
+                        ref={destinationInput}
+                        autoFocus
+                        onFocus={handleSearchInputFocus}
+                        {...destinationKeyword}
+                    />
+                )}
+                {phase === 'searchDestination' && (
+                    <button onClick={searchDestination} disabled={!destinationKeyword.value}>
+                        검색
+                    </button>
+                )}
+                {phase === 'confirmDestination' && (
+                    <div>
+                        <p style={{ backgroundColor: 'white' }}>도착하는 곳에는 파란색 스티커를 붙일게요 👆</p>
+                        <button onClick={handleConfirm} disabled={!destination}>
+                            다음!
+                        </button>
+                    </div>
+                )}
+
+                {/* *** both *** */}
+                {phase === 'confirmBoth' && <button onClick={handleConfirm}>출발!</button>}
+
+                {/* *** draw *** */}
+                {phase === 'draw' && (
+                    <>
+                        <p>삐뚤빼뚤, 펜을 잡고 목적지까지 가는 길을 그려봐요 🖍</p>
+                        <div className="controls">
+                            <button onClick={undo}>undo</button>
+                            <button onClick={handleArrival} disabled={!isArrival}>
+                                도착!
+                            </button>
+                        </div>
+                    </>
                 )}
             </section>
         </div>

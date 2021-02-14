@@ -54,7 +54,8 @@ button {
   width: auto;
   overflow: visible;
   background: transparent;
-  color: inherit;
+  color: #0760EE;
+  text-decoration: underline;
   font: inherit;
   line-height: normal;
   -webkit-font-smoothing: inherit;
@@ -66,7 +67,15 @@ button::-moz-focus-inner {
   border: 0;
   padding: 0;
 }
+button:disabled {
+  color: #999;
+}
 
 input {
   font-family: inherit;
+  outline: 0;
+}
+
+p {
+  background-color: white;
 }

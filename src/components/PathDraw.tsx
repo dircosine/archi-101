@@ -22,7 +22,7 @@ const startingDragImage = new kakao.maps.MarkerImage(
 );
 
 const destinationImage = new kakao.maps.MarkerImage(
-    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker.svg',
+    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_blue.svg',
     new kakao.maps.Size(30, 30),
     {
         offset: new kakao.maps.Point(15, 15),
@@ -30,7 +30,7 @@ const destinationImage = new kakao.maps.MarkerImage(
 );
 
 const destinationDragImage = new kakao.maps.MarkerImage(
-    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_drag.svg',
+    'https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_blue_drag.svg',
     new kakao.maps.Size(30, 30),
     {
         offset: new kakao.maps.Point(15, 15),
@@ -45,11 +45,12 @@ interface PathDrawProps {
     starting: LatLng | null;
     destination: LatLng | null;
     bounds: any;
+    setPhase: React.Dispatch<React.SetStateAction<PathPhase>>;
     setStarting: React.Dispatch<React.SetStateAction<LatLng | null>>;
     setDestination: React.Dispatch<React.SetStateAction<LatLng | null>>;
 }
 
-function PathDraw({ phase, starting, destination, bounds, setStarting, setDestination }: PathDrawProps) {
+function PathDraw({ phase, starting, destination, bounds, setPhase, setStarting, setDestination }: PathDrawProps) {
     const [map, setMap] = useState<any>(null);
     const [mapEvent, setMapDragEvent] = useState<MapEvents>('none');
     const [canvasCenter, setCanvasCenter] = useState<LatLng>(new kakao.maps.LatLng(37.4918782, 127.0324566));
@@ -92,6 +93,7 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
                 });
                 kakao.maps.event.addListener(startingMarker.current, 'dragend', function () {
                     startingMarker.current.setImage(startingImage);
+                    setPhase('confirmStarting');
                     setStarting(startingMarker.current.getPosition());
                 });
 
@@ -120,6 +122,7 @@ function PathDraw({ phase, starting, destination, bounds, setStarting, setDestin
                 });
                 kakao.maps.event.addListener(destinationMarker.current, 'dragend', function () {
                     destinationMarker.current.setImage(destinationImage);
+                    setPhase('confirmDestination');
                     setDestination(destinationMarker.current.getPosition());
                 });
 
