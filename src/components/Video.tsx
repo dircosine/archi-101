@@ -18,7 +18,7 @@ function Video() {
 
     return (
         <section className="Video">
-            <p className="announce">아주 잠깐만 다시 볼까요? 🎧</p>
+            <span className="announce">아주 잠깐만 다시 볼까요? 🎧</span>
             <div className="video">
                 <video ref={videoRef} controls width="100%">
                     {/* <source

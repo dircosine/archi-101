@@ -7,6 +7,8 @@ import PathDraw from '../components/PathDraw';
 import useInput from '../hooks/useInput';
 import { LatLng } from '../utils/map';
 
+import './PathPage.scss';
+
 const geocoder = new kakao.maps.services.Geocoder();
 
 export type PathPhase =
@@ -229,7 +231,15 @@ function PathPage() {
                 )}
                 {phase === 'confirmStarting' && (
                     <div>
-                        <p style={{ backgroundColor: 'white' }}>출발하는 곳에 빨간색 스티커를 붙여볼게요 👆</p>
+                        <p style={{ backgroundColor: 'white' }}>
+                            출발하는 곳에{' '}
+                            <img
+                                className="sticker-desc"
+                                src="https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_drag.svg"
+                                alt="red sticker"
+                            />
+                            빨간색 스티커를 붙여볼게요
+                        </p>
                         <button onClick={handleConfirm} disabled={!starting}>
                             다음!
                         </button>
@@ -254,7 +264,15 @@ function PathPage() {
                 )}
                 {phase === 'confirmDestination' && (
                     <div>
-                        <p style={{ backgroundColor: 'white' }}>도착하는 곳에는 파란색 스티커를 붙일게요 👆</p>
+                        <p style={{ backgroundColor: 'white' }}>
+                            도착하는 곳에는{' '}
+                            <img
+                                className="sticker-desc"
+                                src="https://archi101.s3.ap-northeast-2.amazonaws.com/assets/sticker_blue_drag.svg"
+                                alt="red sticker"
+                            />
+                            파란색 스티커를 붙일게요
+                        </p>
                         <button onClick={handleConfirm} disabled={!destination}>
                             다음!
                         </button>
@@ -270,7 +288,7 @@ function PathPage() {
                         <p>삐뚤빼뚤, 펜을 잡고 목적지까지 가는 길을 그려봐요 🖍</p>
                         <div className="controls">
                             <button onClick={undo}>undo</button>
-                            <button onClick={handleArrival} disabled={!isArrival}>
+                            <button className="last-button" onClick={handleArrival} disabled={!isArrival}>
                                 도착!
                             </button>
                         </div>

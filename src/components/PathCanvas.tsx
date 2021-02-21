@@ -19,7 +19,9 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
     const { othersPath, myPath, setMyPath, setIsArrival } = useContext(PathContext);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const penCanvasRef = useRef<HTMLCanvasElement>(null);
     const ctx = useRef<CanvasRenderingContext2D | null>(null);
+    const penCtx = useRef<CanvasRenderingContext2D | null>(null);
     const stageWidth = useRef(0);
     const stageHeight = useRef(0);
 
@@ -28,7 +30,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
     const innerMyPath = useRef<LatLng[]>([]);
 
     useEffect(() => {
-        if (canvasRef.current && map && !ctx.current) {
+        if (canvasRef.current && penCanvasRef.current && map && !ctx.current && !penCtx.current) {
             initCavans();
         }
 
@@ -63,15 +65,15 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
     }, [othersPath]);
 
     const initCavans = () => {
-        if (!canvasRef.current) {
+        if (!canvasRef.current || !penCanvasRef.current) {
             return null;
         }
 
-        canvasRef.current.className = 'canvas';
         const mapElem = document.getElementById(mapElemId);
         ctx.current = canvasRef.current.getContext('2d');
+        penCtx.current = penCanvasRef.current.getContext('2d');
 
-        if (!ctx.current || !mapElem) {
+        if (!ctx.current || !penCtx.current || !mapElem) {
             return null;
         }
 
@@ -82,7 +84,10 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
 
         canvasRef.current.width = stageWidth.current * pixelRatio;
         canvasRef.current.height = stageHeight.current * pixelRatio;
+        penCanvasRef.current.width = stageWidth.current * pixelRatio;
+        penCanvasRef.current.height = stageHeight.current * pixelRatio;
         ctx.current.scale(pixelRatio, pixelRatio);
+        penCtx.current.scale(pixelRatio, pixelRatio);
 
         // let levelChanging = false;
         // canvasRef.current.addEventListener('wheel', (e) => {
@@ -102,7 +107,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
     const initDraw = () => {
         const mapElem = document.getElementById(mapElemId);
 
-        if (!canvasRef.current || !mapElem) {
+        if (!canvasRef.current || !mapElem || !penCtx.current) {
             return;
         }
         const mapProjection = map.getProjection();
@@ -116,6 +121,10 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
         centerMovedY.current = point.y - containterPoint.y;
 
         myPath.push(map.getCenter());
+
+        penCtx.current.font = '40px Arial';
+        penCtx.current.clearRect(0, 0, stageWidth.current, stageHeight.current);
+        penCtx.current.fillText('🖍', stageWidth.current / 2, stageHeight.current / 2);
 
         let isDown = false;
 
@@ -142,7 +151,7 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
         });
 
         canvasRef.current.addEventListener('pointermove', (e) => {
-            if (!isDown || !ctx.current) {
+            if (!isDown || !ctx.current || !penCtx.current) {
                 return;
             }
 
@@ -173,6 +182,12 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
                 ctx.current.stroke();
                 ctx.current.restore();
 
+                const lastPoint: Point = mapProjection.pointFromCoords(
+                    innerMyPath.current[innerMyPath.current.length - 1],
+                );
+                penCtx.current.clearRect(0, 0, stageWidth.current, stageHeight.current);
+                penCtx.current.fillText('🖍', lastPoint.x - centerMovedX.current, lastPoint.y - centerMovedY.current);
+
                 drawOthers();
             } else if (pushcounter >= 5) {
                 pushcounter = 0;
@@ -184,6 +199,9 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
 
                 const _point: Point = mapProjection.containerPointFromCoords(coords);
                 ctx.current.lineTo(_point.x, _point.y);
+
+                penCtx.current.clearRect(0, 0, stageWidth.current, stageHeight.current);
+                penCtx.current.fillText('🖍', _point.x, _point.y);
 
                 ctx.current.stroke();
 
@@ -269,7 +287,18 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
     };
 
     return (
-        <canvas ref={canvasRef} className="canvas" style={{ pointerEvents: phase === 'draw' ? 'inherit' : 'none' }} />
+        <div>
+            <canvas
+                ref={penCanvasRef}
+                className="canvas"
+                style={{ pointerEvents: phase === 'draw' ? 'inherit' : 'none' }}
+            />
+            <canvas
+                ref={canvasRef}
+                className="canvas"
+                style={{ pointerEvents: phase === 'draw' ? 'inherit' : 'none' }}
+            />
+        </div>
     );
 }
 
