@@ -225,10 +225,13 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
         });
     };
 
-    const clearAll = () => ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
+    const clearAll = () => {
+        ctx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
+        penCtx.current?.clearRect(0, 0, stageWidth.current, stageHeight.current);
+    };
 
     const drawMy = () => {
-        if (!ctx.current) {
+        if (!ctx.current || !penCtx.current) {
             return;
         }
         const mapProjection = map.getProjection();
@@ -251,12 +254,18 @@ function PathCanvas({ map, mapElemId, phase, mapEvent, center, destination }: Pa
         ctx.current.strokeStyle = 'rgba(255,1,2,1)';
         ctx.current.lineCap = 'round';
 
+        let point: Point;
         for (let i = 0; i < innerMyPath.current.length; i++) {
-            const point: Point = mapProjection.containerPointFromCoords(innerMyPath.current[i]);
+            point = mapProjection.containerPointFromCoords(innerMyPath.current[i]);
             ctx.current.lineTo(point.x, point.y);
         }
         ctx.current.stroke();
         ctx.current.restore();
+
+        if (phase === 'draw') {
+            penCtx.current.clearRect(0, 0, stageWidth.current, stageHeight.current);
+            penCtx.current.fillText('🖍', point!.x, point!.y);
+        }
     };
 
     const drawOthers = () => {

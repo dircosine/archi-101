@@ -9,7 +9,7 @@
 
     .announce {
         display: block;
-        
+
         position: sticky;
         top: 160px;
 
@@ -46,12 +46,4 @@
         content: url('./assets/quote.svg');
         margin-right: 8px;
     }
-
-    a {
-        display: inline;
-        margin-top: 40px;
-        color: #0760ee;
-        text-decoration: underline;
-    }
-    // background-color: black;
 }

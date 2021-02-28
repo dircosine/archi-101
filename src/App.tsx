@@ -9,7 +9,6 @@ export type Section = 'poster' | 'video' | 'path';
 export const BASE_NAME = '/architecture-101';
 
 function App() {
-    console.log();
     return (
         <div className={`App ${window.location.pathname.split('/').slice(-1)[0] ? 'App--pathPage' : ''}`}>
             <div className="wrap">

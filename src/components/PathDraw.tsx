@@ -79,7 +79,7 @@ function PathDraw({ phase, starting, destination, bounds, setPhase, setStarting,
             map.relayout();
 
             map.setCenter(starting);
-            if (prevPhase.current !== phase) {
+            if (prevPhase.current !== phase && !startingMarker.current) {
                 map.setLevel(4);
                 // starting
                 startingMarker.current = new kakao.maps.Marker({
@@ -103,14 +103,12 @@ function PathDraw({ phase, starting, destination, bounds, setPhase, setStarting,
 
             startingMarker.current.setPosition(starting);
         }
-        if (destination && phase === 'confirmDestination') {
+
+        if (destination && (phase === 'searchStarting' || phase === 'confirmDestination')) {
             map.relayout();
 
             map.setCenter(destination);
-            if (prevPhase.current !== phase) {
-                map.setLevel(4);
-
-                // destination
+            if (!destinationMarker.current) {
                 destinationMarker.current = new kakao.maps.Marker({
                     map: map,
                     position: destination,
@@ -126,7 +124,12 @@ function PathDraw({ phase, starting, destination, bounds, setPhase, setStarting,
                     setDestination(destinationMarker.current.getPosition());
                 });
 
-                prevPhase.current = 'confirmDestination';
+                if (phase === 'confirmDestination') {
+                    // dest 쿼리 없을 때
+                    map.setLevel(4);
+                } else {
+                    destinationMarker.current.setDraggable(false);
+                }
             }
             setCanvasCenter(destination);
 
@@ -147,6 +150,12 @@ function PathDraw({ phase, starting, destination, bounds, setPhase, setStarting,
             map.setCenter(starting);
             map.setLevel(4);
             setCanvasCenter(starting);
+        }
+        if (map && phase === 'done') {
+            map.setBounds(bounds);
+            setCanvasCenter(map.getCenter());
+            startingMarker.current.setDraggable(false);
+            destinationMarker.current.setDraggable(false);
         }
     }, [map, phase]);
 

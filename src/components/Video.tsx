@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { BASE_NAME } from '../App';
 
 import './Video.scss';
 
 function Video() {
+    const location = useLocation();
+
     const [videoEnded, setVideoEnded] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -41,7 +43,7 @@ function Video() {
                             </p>
                         </div>
 
-                        <Link to="/path">자 한명씩 나와서 각자 오는길을 표시해봐, 이렇게.</Link>
+                        <Link to={`/path${location.search}`}>자 한명씩 나와서 각자 오는길을 표시해봐, 이렇게.</Link>
                     </>
                 )}
             </div>

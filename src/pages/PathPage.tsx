@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { createContext, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import queryString from 'query-string';
 
 import PathDraw from '../components/PathDraw';
 import useInput from '../hooks/useInput';
@@ -18,7 +20,7 @@ export type PathPhase =
     | 'confirmDestination'
     | 'confirmBoth'
     | 'draw'
-    | 'viewPath';
+    | 'done';
 
 type Path = {
     id: string; // uuid
@@ -43,13 +45,15 @@ export const PathContext = createContext<PathContextType>({
 });
 
 function PathPage() {
-    const params = useParams<{ destination: string }>();
+    const location = useLocation();
+    const { dest } = queryString.parse(location.search);
 
     const [phase, setPhase] = useState<PathPhase>('searchStarting');
-    // const [phase, setPhase] = useState<PathPhase>('draw');
+    // const [phase, setPhase] = useState<PathPhase>('done');
     const [othersPath, setOtherPath] = useState<Path[]>([]);
     const [myPath, setMyPath] = useState<LatLng[]>([]);
     const [isArrival, setIsArrival] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const startingKeyword = useInput('');
     const destinationKeyword = useInput('');
@@ -62,29 +66,31 @@ function PathPage() {
     const startingInput = useRef<HTMLInputElement>(null);
     const destinationInput = useRef<HTMLInputElement>(null);
 
+    const fetchPaths = async () => {
+        const { data } = await axios.get<{ statusCode: number; body: string }>(
+            'https://ii7sy8a53m.execute-api.ap-northeast-2.amazonaws.com/default/archi101-getPathsKeys',
+        );
+        const pathsKeys: Path[] = JSON.parse(data.body);
+        const results = await Promise.all(
+            pathsKeys.map((key) => axios.get<Path>(`https://archi101.s3.ap-northeast-2.amazonaws.com/${key}`)),
+        );
+
+        setOtherPath(results.map((res) => res.data));
+    };
+
     useEffect(() => {
-        const fetchPaths = async () => {
-            const { data } = await axios.get<{ statusCode: number; body: string }>(
-                'https://ii7sy8a53m.execute-api.ap-northeast-2.amazonaws.com/default/archi101-getPathsKeys',
-            );
-
-            const pathsKeys: Path[] = JSON.parse(data.body);
-
-            console.log(pathsKeys);
-            const results = await Promise.all(
-                pathsKeys.map((key) => axios.get<Path>(`https://archi101.s3.ap-northeast-2.amazonaws.com/${key}`)),
-            );
-
-            setOtherPath(results.map((res) => res.data));
-        };
-
         fetchPaths();
     }, []);
 
     useEffect(() => {
-        if (starting && destination && phase === 'confirmBoth') {
-            // console.log(measure(starting, destination));
+        if (dest) {
+            const [long, lat] = (dest as string).split(',');
+            setDestination(new kakao.maps.LatLng(long, lat));
+        }
+    }, [dest]);
 
+    useEffect(() => {
+        if (starting && destination && phase === 'confirmBoth') {
             const bounds = new kakao.maps.LatLngBounds();
             bounds.extend(starting);
             bounds.extend(destination);
@@ -92,15 +98,6 @@ function PathPage() {
             setBounds(bounds);
         }
     }, [starting, destination, phase]);
-
-    // useEffect(() => {
-    //     if (phase === 'searchStarting') {
-    //         startingInput.current?.focus();
-    //     }
-    //     if (phase === 'searchDestination') {
-    //         destinationInput.current?.focus();
-    //     }
-    // }, [phase]);
 
     const searchStarting = () => {
         geocoder.addressSearch(startingKeyword.value, function (result: any, status: string) {
@@ -128,7 +125,11 @@ function PathPage() {
 
     const handleConfirm = () => {
         if (phase === 'confirmStarting') {
-            setPhase('searchDestination');
+            if (dest) {
+                setPhase('confirmBoth');
+            } else {
+                setPhase('searchDestination');
+            }
         }
         if (phase === 'confirmDestination') {
             setPhase('confirmBoth');
@@ -173,7 +174,7 @@ function PathPage() {
         });
     };
 
-    const handleArrival = () => {
+    const handleArrival = async () => {
         const pathId = uuidv4();
         const path: Path = {
             id: pathId,
@@ -184,7 +185,10 @@ function PathPage() {
         const myPathIds = JSON.parse(window.localStorage.getItem('myPathIds') || '[]');
         window.localStorage.setItem('myPathIds', JSON.stringify([...myPathIds, pathId]));
 
-        uploadPath(path);
+        await uploadPath(path);
+
+        fetchPaths();
+        setPhase('done');
     };
 
     const handleSearchInputFocus = () => {
@@ -195,6 +199,14 @@ function PathPage() {
             setPhase('searchDestination');
         }
     };
+
+    const hanldeShare = () => {
+        console.log(destination);
+    };
+
+    const destLink = `${window.location.href.split('/').slice(0, 3).join('/')}?dest=${destination?.Ma},${
+        destination?.La
+    }`;
 
     return (
         <div className="PathPage">
@@ -287,11 +299,25 @@ function PathPage() {
                     <>
                         <p>삐뚤빼뚤, 펜을 잡고 목적지까지 가는 길을 그려봐요 🖍</p>
                         <div className="controls">
-                            <button onClick={undo}>undo</button>
+                            <button onClick={undo}> </button>
                             <button className="last-button" onClick={handleArrival} disabled={!isArrival}>
                                 도착!
                             </button>
                         </div>
+                    </>
+                )}
+
+                {/* *** done *** */}
+                {phase === 'done' && (
+                    <>
+                        <p>🎉🎉🎉</p>
+                        <div>
+                            <CopyToClipboard text={destLink} onCopy={() => setCopied(true)}>
+                                <button onClick={hanldeShare}>같은 목적지로 공유하기</button>
+                            </CopyToClipboard>
+                            {copied ? <span>링크 복사됨!</span> : null}
+                        </div>
+                        <Link to="/homework">다음!</Link>
                     </>
                 )}
             </section>
